@@ -1,0 +1,27 @@
+services:
+  sia-app:
+    build: .
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://sia_user:sia_pass@db:5432/sia_db
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: sia_user
+      POSTGRES_PASSWORD: sia_pass
+      POSTGRES_DB: sia_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
