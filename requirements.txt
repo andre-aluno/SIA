@@ -1,0 +1,10 @@
+streamlit
+pygad
+plotly
+sqlalchemy
+psycopg2-binary
+openpyxl
+deap
+xlsxwriter
+pandas
+
