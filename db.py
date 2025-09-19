@@ -13,8 +13,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 # 1. Conexão e Sessão
 # ---------------------------------------------------------------------
 DATABASE_URL = os.getenv(
-    'DATABASE_URL',
-    'postgresql://sia_user:sia_pass@db:5432/sia_db'
+    'DATABASE_URL'
 )
 
 @st.cache_resource
