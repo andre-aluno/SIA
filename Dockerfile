@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # Instala dependências
-RUN pip install streamlit pygad plotly sqlalchemy psycopg2-binary openpyxl deap
+RUN pip install streamlit pygad plotly sqlalchemy psycopg2-binary openpyxl deap xlsxwriter
 
 # Expõe a porta padrão do Streamlit
 EXPOSE 8501
