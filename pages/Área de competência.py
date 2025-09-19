@@ -5,10 +5,14 @@ from db import AreaCompetencia, get_session
 
 def list_areas(db: Session):
     """Exibe todas as áreas de competência em uma tabela."""
-    areas = db.query(AreaCompetencia).order_by(AreaCompetencia.nome).all()
-    data = [{"ID": a.id, "Nome": a.nome} for a in areas]
-    df = pd.DataFrame(data)
-    st.dataframe(df)
+    try:
+        areas = db.query(AreaCompetencia).order_by(AreaCompetencia.nome).all()
+        data = [{"ID": a.id, "Nome": a.nome} for a in areas]
+        df = pd.DataFrame(data)
+        st.dataframe(df)
+    except Exception as e:
+        db.rollback()
+        st.error(f"Erro ao carregar áreas: {e}")
 
 def create_area(db: Session):
     """Formulário para criar uma nova área de competência."""
