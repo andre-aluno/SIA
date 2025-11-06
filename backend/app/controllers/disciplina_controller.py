@@ -61,7 +61,21 @@ class DisciplinaController(BaseController):
         end = start + per_page
         paginated = disciplinas[start:end]
 
-        return self.handle_service_list(paginated, total, page, per_page)
+        # Serialize disciplinas with proper area objects
+        serialized_disciplinas = []
+        for disc in paginated:
+            data = self.serialize_obj(disc)
+            if disc.area:
+                data['area'] = self.serialize_obj(disc.area)
+            serialized_disciplinas.append(data)
+
+        return ApiResponse.list_response(
+            serialized_disciplinas,
+            total,
+            page,
+            per_page,
+            "Sucesso"
+        )
 
     def get_by_id(self, id: int):
         """GET /api/disciplinas/<id> - Obtém disciplina pelo ID."""
@@ -87,7 +101,21 @@ class DisciplinaController(BaseController):
         end = start + per_page
         paginated = disciplinas[start:end]
 
-        return self.handle_service_list(paginated, total, page, per_page)
+        # Serialize disciplinas with proper area objects
+        serialized_disciplinas = []
+        for disc in paginated:
+            data = self.serialize_obj(disc)
+            if disc.area:
+                data['area'] = self.serialize_obj(disc.area)
+            serialized_disciplinas.append(data)
+
+        return ApiResponse.list_response(
+            serialized_disciplinas,
+            total,
+            page,
+            per_page,
+            "Sucesso"
+        )
 
     def update(self, id: int):
         """PUT /api/disciplinas/<id> - Atualiza disciplina."""
