@@ -1,10 +1,25 @@
 """
 Service para gerenciar Professores.
 """
-from typing import List, Optional, Set
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from ..models import Professor, AreaCompetencia, TITULACAO_NIVEL_MAP
 from .base_service import BaseService
+
+# Mapeamento inverso: nível -> titulação
+NIVEL_TITULACAO_MAP = {
+    0: 'Ensino Médio',
+    1: 'Graduado',
+    2: 'Especialista',
+    3: 'Mestre',
+    4: 'Doutor'
+}
+
+# Cargas horárias por modelo de contratação
+CARGA_HORARIA_MAP = {
+    'Mensalista ': 256.0,
+    'Horista': 128.0
+}
 
 
 class ProfessorService(BaseService[Professor]):
@@ -59,37 +74,39 @@ class ProfessorService(BaseService[Professor]):
             print(f"Erro ao listar professores por área: {str(e)}")
             return []
 
-    def create_with_areas(self, nome: str, titulacao: str, carga_maxima: float,
-                         modelo_contratacao: str, area_ids: List[int] = None) -> tuple[Optional[Professor], Optional[str]]:
+    def create_with_areas(self, nome: str, nivel: int, modelo_contratacao: str,
+                         area_ids: List[int] = None) -> tuple[Optional[Professor], Optional[str]]:
         """
         Cria um professor com validações e áreas de competência.
 
         Args:
             nome: Nome do professor
-            titulacao: Titulação (deve estar em TITULACAO_NIVEL_MAP)
-            carga_maxima: Carga horária máxima
-            modelo_contratacao: Modelo de contratação (Mensalista ou Horista)
+            nivel: Nível de titulação (0-4)
+            modelo_contratacao: Modelo de contratação (Mensalista  ou Horista)
             area_ids: Lista de IDs de áreas de competência
 
         Returns:
             Tupla (professor criado, mensagem de erro ou None)
         """
-        # Validar titulação
-        if titulacao not in TITULACAO_NIVEL_MAP:
-            valid_titulacoes = ", ".join(TITULACAO_NIVEL_MAP.keys())
-            return None, f"Titulação inválida. Válidas: {valid_titulacoes}"
+        # Validar nível
+        try:
+            nivel = int(nivel)
+        except (ValueError, TypeError):
+            return None, "Nível deve ser um número inteiro"
 
-        # Validar carga máxima
-        if carga_maxima <= 0:
-            return None, "Carga máxima deve ser maior que zero"
+        if nivel not in NIVEL_TITULACAO_MAP:
+            return None, f"Nível inválido. Deve ser entre 0 e 4 (0=Ensino Médio, 1=Graduado, 2=Especialista, 3=Mestre, 4=Doutor)"
 
         # Validar modelo de contratação
-        valid_modelos = ["Mensalista ", "Horista"]
-        if modelo_contratacao not in valid_modelos:
-            return None, f"Modelo de contratação inválido. Válidos: {', '.join(valid_modelos)}"
+        if modelo_contratacao not in CARGA_HORARIA_MAP:
+            valid_modelos = ", ".join(CARGA_HORARIA_MAP.keys())
+            return None, f"Modelo de contratação inválido. Válidos: {valid_modelos}"
 
-        # Obter nível da titulação
-        nivel = TITULACAO_NIVEL_MAP[titulacao]
+        # Obter titulação baseado no nível
+        titulacao = NIVEL_TITULACAO_MAP[nivel]
+
+        # Obter carga máxima baseado no modelo de contratação
+        carga_maxima = CARGA_HORARIA_MAP[modelo_contratacao]
 
         # Criar professor
         prof, error = self.create(
@@ -241,6 +258,84 @@ class ProfessorService(BaseService[Professor]):
             print(f"Erro ao calcular percentual de carga: {str(e)}")
             return 0.0
 
+    def update(self, id: int, **kwargs) -> tuple[Optional[Professor], Optional[str]]:
+        """
+        Atualiza um professor com validações específicas.
+
+        Args:
+            id: ID do professor
+            **kwargs: Campos a serem atualizados (nome, nivel, modelo_contratacao, area_ids)
+
+        Returns:
+            Tupla (professor atualizado, mensagem de erro ou None)
+        """
+        prof = self.get_by_id(id)
+        if not prof:
+            return None, f"Professor com ID {id} não encontrado"
+
+        try:
+            # Validar e converter nível se for atualizado
+            if 'nivel' in kwargs:
+                try:
+                    nivel = int(kwargs['nivel'])
+                except (ValueError, TypeError):
+                    return None, "Nível deve ser um número inteiro"
+
+                if nivel not in NIVEL_TITULACAO_MAP:
+                    return None, f"Nível inválido. Deve ser entre 0 e 4 (0=Ensino Médio, 1=Graduado, 2=Especialista, 3=Mestre, 4=Doutor)"
+
+                # Definir titulação automaticamente baseado no nível
+                kwargs['nivel'] = nivel
+                kwargs['titulacao'] = NIVEL_TITULACAO_MAP[nivel]
+
+            # Validar modelo de contratação e definir carga máxima automaticamente
+            if 'modelo_contratacao' in kwargs:
+                modelo = kwargs['modelo_contratacao']
+                if modelo not in CARGA_HORARIA_MAP:
+                    valid_modelos = ", ".join(CARGA_HORARIA_MAP.keys())
+                    return None, f"Modelo de contratação inválido. Válidos: {valid_modelos}"
+
+                # Definir carga máxima automaticamente baseado no modelo
+                kwargs['carga_maxima'] = CARGA_HORARIA_MAP[modelo]
+
+            # Extrair area_ids se fornecido (não é campo do modelo)
+            area_ids = kwargs.pop('area_ids', None)
+
+            # Remover campos que não devem ser recebidos da API
+            kwargs.pop('titulacao', None) if 'nivel' not in kwargs and 'titulacao' in kwargs else None
+            kwargs.pop('carga_maxima', None) if 'modelo_contratacao' not in kwargs and 'carga_maxima' in kwargs else None
+
+            # Atualizar campos básicos
+            for key, value in kwargs.items():
+                if hasattr(prof, key):
+                    setattr(prof, key, value)
+
+            # Atualizar áreas se fornecidas
+            if area_ids is not None:
+                # Limpar áreas atuais
+                prof.areas.clear()
+
+                # Adicionar novas áreas
+                for area_id in area_ids:
+                    area = self.db.query(AreaCompetencia).filter(
+                        AreaCompetencia.id == area_id
+                    ).first()
+                    if not area:
+                        self.db.rollback()
+                        return None, f"Área de competência com ID {area_id} não encontrada"
+                    prof.areas.append(area)
+
+            self.db.commit()
+            self.db.refresh(prof)
+            return prof, None
+
+        except ValueError as e:
+            self.db.rollback()
+            return None, f"Valor inválido: {str(e)}"
+        except Exception as e:
+            self.db.rollback()
+            return None, f"Erro ao atualizar professor: {str(e)}"
+
     def delete_with_validation(self, id: int) -> tuple[bool, Optional[str]]:
         """
         Deleta um professor com validação de dependências.
@@ -257,4 +352,3 @@ class ProfessorService(BaseService[Professor]):
             return False, "Não é possível deletar um professor que possui alocações"
 
         return self.delete(id)
-

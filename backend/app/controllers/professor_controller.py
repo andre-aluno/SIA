@@ -24,21 +24,20 @@ class ProfessorController(BaseController):
         if data is None:
             return ApiResponse.bad_request("JSON inválido")
 
-        error = self.validate_required_fields(data, ['nome', 'titulacao', 'modelo_contratacao'])
+        error = self.validate_required_fields(data, ['nome', 'nivel', 'modelo_contratacao'])
         if error:
             return error
 
         try:
-            carga_maxima = float(data.get('carga_maxima', 256.0))
+            nivel = int(data['nivel'])
         except (ValueError, TypeError):
-            return ApiResponse.bad_request("Carga máxima deve ser numérica")
+            return ApiResponse.bad_request("Nível deve ser um número inteiro")
 
         area_ids = data.get('area_ids', [])
 
         prof, service_error = self.service.create_with_areas(
             nome=data['nome'],
-            titulacao=data['titulacao'],
-            carga_maxima=carga_maxima,
+            nivel=nivel,
             modelo_contratacao=data['modelo_contratacao'],
             area_ids=area_ids
         )
@@ -214,11 +213,12 @@ class ProfessorController(BaseController):
         if not data:
             return ApiResponse.bad_request("Nenhum dado para atualizar")
 
-        if 'carga_maxima' in data:
+        # Validar nivel se presente
+        if 'nivel' in data:
             try:
-                data['carga_maxima'] = float(data['carga_maxima'])
+                data['nivel'] = int(data['nivel'])
             except (ValueError, TypeError):
-                return ApiResponse.bad_request("Carga máxima deve ser numérica")
+                return ApiResponse.bad_request("Nível deve ser um número inteiro")
 
         prof, service_error = self.service.update(id, **data)
 
@@ -257,12 +257,9 @@ def register_professor_routes(app, db):
                 nome:
                   type: string
                   example: "João Silva"
-                titulacao:
-                  type: string
-                  example: "Doutor"
-                carga_maxima:
-                  type: number
-                  example: 256.0
+                nivel:
+                  type: integer
+                  example: 2
                 modelo_contratacao:
                   type: string
                   example: "CLT"
@@ -273,7 +270,7 @@ def register_professor_routes(app, db):
                   example: [1, 2]
               required:
                 - nome
-                - titulacao
+                - nivel
                 - modelo_contratacao
         responses:
           201:
