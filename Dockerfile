@@ -1,17 +1,36 @@
-# Base com Python
 FROM python:3.11-slim
 
-# Diretório de trabalho
-WORKDIR /app
+WORKDIR /backend
 
-# Copia os arquivos
-COPY . /app
+# Instalar dependências do sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    postgresql-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instala dependências
-RUN pip install streamlit pygad plotly sqlalchemy psycopg2-binary openpyxl deap xlsxwriter
+# Copiar requirements e instalar dependências Python
+COPY backend/requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install gunicorn
 
-# Expõe a porta padrão do Streamlit
-EXPOSE 8501
+# Copiar aplicação
+COPY backend/ .
 
-# Comando para rodar o app
-CMD ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Criar diretórios necessários
+RUN mkdir -p logs uploads
+
+# Variáveis de ambiente
+ENV PYTHONUNBUFFERED=1 \
+    FLASK_APP=main.py
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
+
+# Expõe porta
+EXPOSE 3001
+
+# Comando para rodar com Gunicorn - usar main.py
+CMD ["gunicorn", "--bind", "0.0.0.0:3001", "--workers", "4", "--timeout", "120", "main:create_app()"]

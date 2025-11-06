@@ -1,27 +1,47 @@
 services:
-  sia-app:
-    build: .
-    restart: always
-    depends_on:
-      - db
-    environment:
-      DATABASE_URL: postgresql://sia_user:sia_pass@db:5432/sia_db
-    ports:
-      - "8501:8501"
-    volumes:
-      - .:/app
-
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
   db:
-    image: postgres:13
-    restart: always
+    image: postgres:15-alpine
+    container_name: alocacao_professor_db
     environment:
-      POSTGRES_USER: sia_user
-      POSTGRES_PASSWORD: sia_pass
-      POSTGRES_DB: sia_db
+      POSTGRES_USER: ${DB_USER:-alocacao}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-senha_segura_123}
+      POSTGRES_DB: ${DB_NAME:-alocacao_professor}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-alocacao} -d ${DB_NAME:-alocacao_professor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ============================================================================
+  # Backend Flask API
+  # ============================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alocacao_professor_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: production
+      FLASK_DEBUG: "False"
+      DATABASE_URL: postgresql://${DB_USER:-alocacao}:${DB_PASSWORD:-senha_segura_123}@db:5432/${DB_NAME:-alocacao_professor}
+    ports:
+      - "${API_PORT:-3001}:3001"
+    volumes:
+      - ./backend/logs:/app/logs
+      - ./backend/uploads:/app/uploads
+    restart: unless-stopped
 
 volumes:
-  pgdata:
+  postgres_data:
