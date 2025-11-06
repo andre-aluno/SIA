@@ -18,6 +18,99 @@ class AreaCompetenciaController(BaseController):
         self.service = AreaCompetenciaService(db)
 
     def create(self):
+        """Cria nova área de competência."""
+        data = self.get_json_data()
+
+        if data is None:
+            return ApiResponse.bad_request("JSON inválido")
+
+        # Validar campos obrigatórios
+        error = self.validate_required_fields(data, ['nome'])
+        if error:
+            return error
+
+        # Criar área
+        area, service_error = self.service.create(nome=data['nome'])
+
+        if service_error:
+            return ApiResponse.bad_request(service_error)
+
+        return ApiResponse.created(
+            self.serialize_obj(area),
+            f"Área '{area.nome}' criada com sucesso"
+        )
+
+    def list_all(self):
+        """Lista todas as áreas de competência."""
+        page, per_page = self.get_pagination_params()
+
+        areas = self.service.list_all_ordered()
+        total = len(areas)
+
+        # Aplicar paginação
+        start = (page - 1) * per_page
+        end = start + per_page
+        paginated = areas[start:end]
+
+        return self.handle_service_list(paginated, total, page, per_page)
+
+    def get_by_id(self, id: int):
+        """Obtém uma área pelo ID."""
+        area = self.service.get_by_id(id)
+
+        if not area:
+            return ApiResponse.not_found(f"Área com ID {id} não encontrada")
+
+        return ApiResponse.success(self.serialize_obj(area))
+
+    def get_by_nome(self, nome: str):
+        """Obtém uma área pelo nome."""
+        area = self.service.get_by_nome(nome)
+
+        if not area:
+            return ApiResponse.not_found(f"Área '{nome}' não encontrada")
+
+        return ApiResponse.success(self.serialize_obj(area))
+
+    def update(self, id: int):
+        """Atualiza uma área."""
+        data = self.get_json_data()
+
+        if data is None:
+            return ApiResponse.bad_request("JSON inválido")
+
+        if not data:
+            return ApiResponse.bad_request("Nenhum dado para atualizar")
+
+        area, service_error = self.service.update(id, **data)
+
+        return self.handle_service_error(
+            area,
+            service_error,
+            f"Área atualizada com sucesso"
+        )
+
+    def delete(self, id: int):
+        """Deleta uma área."""
+        success, error = self.service.delete_with_validation(id)
+
+        if not success:
+            return ApiResponse.bad_request(error)
+
+        return ApiResponse.success(None, "Área deletada com sucesso")
+
+    def count(self):
+        """Retorna total de áreas."""
+        total = self.service.count()
+        return ApiResponse.success({"total": total})
+
+
+def register_area_routes(app, db):
+    """Registra rotas de áreas de competência."""
+    controller = AreaCompetenciaController(db)
+
+    @bp.route('', methods=['POST'])
+    def create_area():
         """
         POST /api/areas - Cria nova área de competência.
         ---
@@ -58,28 +151,10 @@ class AreaCompetenciaController(BaseController):
           400:
             description: Erro de validação
         """
-        data = self.get_json_data()
+        return controller.create()
 
-        if data is None:
-            return ApiResponse.bad_request("JSON inválido")
-
-        # Validar campos obrigatórios
-        error = self.validate_required_fields(data, ['nome'])
-        if error:
-            return error
-
-        # Criar área
-        area, service_error = self.service.create(nome=data['nome'])
-
-        if service_error:
-            return ApiResponse.bad_request(service_error)
-
-        return ApiResponse.created(
-            self.serialize_obj(area),
-            f"Área '{area.nome}' criada com sucesso"
-        )
-
-    def list_all(self):
+    @bp.route('', methods=['GET'])
+    def list_areas():
         """
         GET /api/areas - Lista todas as áreas de competência.
         ---
@@ -124,21 +199,12 @@ class AreaCompetenciaController(BaseController):
                     pages:
                       type: integer
         """
-        page, per_page = self.get_pagination_params()
+        return controller.list_all()
 
-        areas = self.service.list_all_ordered()
-        total = len(areas)
-
-        # Aplicar paginação
-        start = (page - 1) * per_page
-        end = start + per_page
-        paginated = areas[start:end]
-
-        return self.handle_service_list(paginated, total, page, per_page)
-
-    def get_by_id(self, id: int):
+    @bp.route('/<int:id>', methods=['GET'])
+    def get_area(id):
         """
-        GET /api/areas/<id> - Obtém uma área pelo ID.
+        GET /api/areas/{id} - Obtém uma área pelo ID.
         ---
         tags:
           - Áreas de Competência
@@ -155,16 +221,12 @@ class AreaCompetenciaController(BaseController):
           404:
             description: Área não encontrada
         """
-        area = self.service.get_by_id(id)
+        return controller.get_by_id(id)
 
-        if not area:
-            return ApiResponse.not_found(f"Área com ID {id} não encontrada")
-
-        return ApiResponse.success(self.serialize_obj(area))
-
-    def get_by_nome(self, nome: str):
+    @bp.route('/by-nome/<nome>', methods=['GET'])
+    def get_area_by_nome(nome):
         """
-        GET /api/areas/by-nome/<nome> - Obtém uma área pelo nome.
+        GET /api/areas/by-nome/{nome} - Obtém uma área pelo nome.
         ---
         tags:
           - Áreas de Competência
@@ -181,16 +243,12 @@ class AreaCompetenciaController(BaseController):
           404:
             description: Área não encontrada
         """
-        area = self.service.get_by_nome(nome)
+        return controller.get_by_nome(nome)
 
-        if not area:
-            return ApiResponse.not_found(f"Área '{nome}' não encontrada")
-
-        return ApiResponse.success(self.serialize_obj(area))
-
-    def update(self, id: int):
+    @bp.route('/<int:id>', methods=['PUT'])
+    def update_area(id):
         """
-        PUT /api/areas/<id> - Atualiza uma área.
+        PUT /api/areas/{id} - Atualiza uma área.
         ---
         tags:
           - Áreas de Competência
@@ -216,25 +274,12 @@ class AreaCompetenciaController(BaseController):
           400:
             description: Erro de validação
         """
-        data = self.get_json_data()
+        return controller.update(id)
 
-        if data is None:
-            return ApiResponse.bad_request("JSON inválido")
-
-        if not data:
-            return ApiResponse.bad_request("Nenhum dado para atualizar")
-
-        area, service_error = self.service.update(id, **data)
-
-        return self.handle_service_error(
-            area,
-            service_error,
-            f"Área atualizada com sucesso"
-        )
-
-    def delete(self, id: int):
+    @bp.route('/<int:id>', methods=['DELETE'])
+    def delete_area(id):
         """
-        DELETE /api/areas/<id> - Deleta uma área.
+        DELETE /api/areas/{id} - Deleta uma área.
         ---
         tags:
           - Áreas de Competência
@@ -252,14 +297,10 @@ class AreaCompetenciaController(BaseController):
           400:
             description: Não é possível deletar (dependências)
         """
-        success, error = self.service.delete_with_validation(id)
+        return controller.delete(id)
 
-        if not success:
-            return ApiResponse.bad_request(error)
-
-        return ApiResponse.success(None, "Área deletada com sucesso")
-
-    def count(self):
+    @bp.route('/stats/count', methods=['GET'])
+    def count_areas():
         """
         GET /api/areas/stats/count - Retorna total de áreas.
         ---
@@ -281,40 +322,6 @@ class AreaCompetenciaController(BaseController):
                     total:
                       type: integer
         """
-        total = self.service.count()
-        return ApiResponse.success({"total": total})
-
-
-def register_area_routes(app, db):
-    """Registra rotas de áreas de competência."""
-    controller = AreaCompetenciaController(db)
-
-    @bp.route('', methods=['POST'])
-    def create_area():
-        return controller.create()
-
-    @bp.route('', methods=['GET'])
-    def list_areas():
-        return controller.list_all()
-
-    @bp.route('/<int:id>', methods=['GET'])
-    def get_area(id):
-        return controller.get_by_id(id)
-
-    @bp.route('/by-nome/<nome>', methods=['GET'])
-    def get_area_by_nome(nome):
-        return controller.get_by_nome(nome)
-
-    @bp.route('/<int:id>', methods=['PUT'])
-    def update_area(id):
-        return controller.update(id)
-
-    @bp.route('/<int:id>', methods=['DELETE'])
-    def delete_area(id):
-        return controller.delete(id)
-
-    @bp.route('/stats/count', methods=['GET'])
-    def count_areas():
         return controller.count()
 
     app.register_blueprint(bp)
