@@ -149,10 +149,8 @@ class OfertaService(BaseService[Oferta]):
                 Oferta.semestre_id == semestre_id
             ).join(
                 Oferta.disciplina
-            ).outerjoin(
-                Oferta.alocacoes
             ).filter(
-                Oferta.alocacoes == None
+                ~Oferta.alocacoes.any()
             ).order_by(
                 Disciplina.nome,
                 Oferta.turma
@@ -178,10 +176,8 @@ class OfertaService(BaseService[Oferta]):
                 SemestreLetivo.nome == semestre_nome
             ).join(
                 Oferta.disciplina
-            ).outerjoin(
-                Oferta.alocacoes
             ).filter(
-                Oferta.alocacoes == None
+                ~Oferta.alocacoes.any()
             ).order_by(
                 Disciplina.nome,
                 Oferta.turma
@@ -216,4 +212,3 @@ class OfertaService(BaseService[Oferta]):
             return False, "Não é possível deletar uma oferta que possui alocações"
 
         return self.delete(id)
-

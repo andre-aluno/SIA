@@ -137,11 +137,12 @@ class AlocacaoService(BaseService[Alocacao]):
         disciplina = oferta.disciplina
         tem_competencia = any(a.id == disciplina.area.id for a in professor.areas)
 
-        # Validar carga horária máxima
+        # Validar carga horária máxima - considera apenas alocações do mesmo semestre
+        semestre_id_oferta = oferta.semestre_id
         carga_atual = float(sum(
             a.oferta.disciplina.carga_horaria
             for a in professor.alocacoes
-            if a.oferta and a.oferta.disciplina
+            if a.oferta and a.oferta.disciplina and a.oferta.semestre_id == semestre_id_oferta
         )) if professor.alocacoes else 0.0
 
         carga_disciplina = float(disciplina.carga_horaria)

@@ -252,6 +252,84 @@ class AlgoritmoGeneticoController(BaseController):
 
         return ApiResponse.success(info, "Informações do semestre")
 
+    def execute_algorithm(self):
+        """POST /api/ag/executar - Executa o Algoritmo Genético e retorna proposta de alocação."""
+        try:
+            data = self.get_json_data()
+
+            if data is None:
+                return ApiResponse.bad_request("JSON inválido")
+
+            error = self.validate_required_fields(data, ['semestre_nome'])
+            if error:
+                return error
+
+            semestre_nome = data['semestre_nome']
+
+            # Extrair parâmetros do AG com valores padrão
+            num_geracoes = data.get('num_geracoes', 50)
+            tamanho_populacao = data.get('tamanho_populacao', 100)
+            probabilidade_crossover = data.get('probabilidade_crossover', 0.7)
+            probabilidade_mutacao = data.get('probabilidade_mutacao', 0.2)
+
+            # Validar parâmetros
+            config = {
+                'num_geracoes': num_geracoes,
+                'tamanho_populacao': tamanho_populacao,
+                'probabilidade_crossover': probabilidade_crossover,
+                'probabilidade_mutacao': probabilidade_mutacao
+            }
+
+            valid, error_msg = self.service.get_config_validation(config)
+            if not valid:
+                return ApiResponse.bad_request(f"Configuração inválida: {error_msg}")
+
+            # Executar algoritmo
+            resultado = self.service.execute_ga(
+                semestre_nome=semestre_nome,
+                num_geracoes=int(num_geracoes),
+                tamanho_populacao=int(tamanho_populacao),
+                probabilidade_crossover=float(probabilidade_crossover),
+                probabilidade_mutacao=float(probabilidade_mutacao)
+            )
+
+            if not resultado['sucesso']:
+                return ApiResponse.bad_request(resultado['erro'])
+
+            # Preparar resposta com estrutura clara
+            response = {
+                "semestre": resultado['semestre'],
+                "viabilidade": {
+                    "viavel": resultado['viavel'],
+                    "problemas": resultado['problemas_viabilidade']
+                },
+                "proposta_alocacao": {
+                    "total_ofertas": len(resultado['alocacao_formatada']),
+                    "alocacoes": resultado['alocacao_formatada']
+                },
+                "qualidade": {
+                    "fitness_total": resultado['metrics']['fitness_total'],
+                    "penalidades": {
+                        "incompetencia": resultado['metrics']['penalidade_incompetencia'],
+                        "sobrecarga": resultado['metrics']['penalidade_sobrecarga'],
+                        "desbalanceamento": resultado['metrics']['penalidade_desbalanceamento']
+                    }
+                },
+                "resumo": resultado['resumo'],
+                "evolucao_fitness": resultado['evolucao'],
+                "parametros_utilizados": resultado['parametros'],
+                "tempo_execucao_segundos": round(resultado['tempo_execucao'], 2)
+            }
+
+            return ApiResponse.success(response, "Algoritmo Genético executado com sucesso")
+
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Erro ao executar AG: {str(e)}")
+            print(f"Traceback: {error_trace}")
+            return ApiResponse.error(f"Erro ao executar AG: {str(e)}")
+
 
 def register_ag_routes(app, db):
     """Registra rotas do Algoritmo Genético."""
@@ -472,5 +550,43 @@ def register_ag_routes(app, db):
             description: Semestre não encontrado
         """
         return controller.get_info_semestre(semestre_nome)
+
+    @bp.route('/executar', methods=['POST'])
+    def execute_algorithm():
+        """
+        POST /api/ag/executar - Executa o algoritmo genético.
+        ---
+        tags:
+          - Algoritmo Genético
+        summary: Executar algoritmo genético
+        description: Executa o algoritmo genético com os dados e parâmetros fornecidos e retorna a proposta de alocação
+        parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                semestre_nome:
+                  type: string
+                num_geracoes:
+                  type: integer
+                  example: 50
+                tamanho_populacao:
+                  type: integer
+                  example: 100
+                probabilidade_crossover:
+                  type: number
+                  example: 0.7
+                probabilidade_mutacao:
+                  type: number
+                  example: 0.2
+        responses:
+          200:
+            description: Algoritmo executado com sucesso
+          400:
+            description: Dados inválidos
+        """
+        return controller.execute_algorithm()
 
     app.register_blueprint(bp)

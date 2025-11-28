@@ -216,7 +216,7 @@ class AlocacaoController(BaseController):
 
         if erros:
             response['alocacoes'] = [self.serialize_obj(a) for a in alocacoes]
-            return ApiResponse.success(response, "Alocações criadas com avisos", 207)
+            return ApiResponse.success(response, "Erro ao gerar alocações", 400)
         else:
             response['alocacoes'] = [self.serialize_obj(a) for a in alocacoes]
             return ApiResponse.success(response, "Todas as alocações criadas com sucesso", 201)
