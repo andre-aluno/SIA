@@ -18,6 +18,18 @@ class AlocacaoController(BaseController):
         self.oferta_service = OfertaService(db)
         self.professor_service = ProfessorService(db)
 
+    def serialize_oferta(self, oferta) -> dict:
+        """Serializa oferta com disciplina e semestre como objetos."""
+        oferta_data = self.serialize_obj(oferta)
+        if oferta.disciplina:
+            oferta_data['disciplina'] = self.serialize_obj(oferta.disciplina)
+            # Serializar área da disciplina também
+            if oferta.disciplina.area:
+                oferta_data['disciplina']['area'] = self.serialize_obj(oferta.disciplina.area)
+        if oferta.semestre:
+            oferta_data['semestre'] = self.serialize_obj(oferta.semestre)
+        return oferta_data
+
     def create(self):
         """POST /api/alocacoes - Cria nova alocação."""
         data = self.get_json_data()
@@ -45,7 +57,7 @@ class AlocacaoController(BaseController):
 
         result = self.serialize_obj(alocacao)
         if alocacao.oferta:
-            result['oferta'] = self.serialize_obj(alocacao.oferta)
+            result['oferta'] = self.serialize_oferta(alocacao.oferta)
         if alocacao.professor:
             result['professor'] = self.serialize_obj(alocacao.professor)
 
@@ -66,7 +78,7 @@ class AlocacaoController(BaseController):
         for aloc in paginated:
             aloc_data = self.serialize_obj(aloc)
             if aloc.oferta:
-                aloc_data['oferta'] = self.serialize_obj(aloc.oferta)
+                aloc_data['oferta'] = self.serialize_oferta(aloc.oferta)
             if aloc.professor:
                 aloc_data['professor'] = self.serialize_obj(aloc.professor)
             result.append(aloc_data)
@@ -82,7 +94,7 @@ class AlocacaoController(BaseController):
 
         result = self.serialize_obj(alocacao)
         if alocacao.oferta:
-            result['oferta'] = self.serialize_obj(alocacao.oferta)
+            result['oferta'] = self.serialize_oferta(alocacao.oferta)
         if alocacao.professor:
             result['professor'] = self.serialize_obj(alocacao.professor)
 
@@ -116,7 +128,7 @@ class AlocacaoController(BaseController):
         for aloc in paginated:
             aloc_data = self.serialize_obj(aloc)
             if aloc.oferta:
-                aloc_data['oferta'] = self.serialize_obj(aloc.oferta)
+                aloc_data['oferta'] = self.serialize_oferta(aloc.oferta)
             result.append(aloc_data)
 
         return ApiResponse.list_response(result, total, page, per_page,
@@ -137,7 +149,7 @@ class AlocacaoController(BaseController):
         for aloc in paginated:
             aloc_data = self.serialize_obj(aloc)
             if aloc.oferta:
-                aloc_data['oferta'] = self.serialize_obj(aloc.oferta)
+                aloc_data['oferta'] = self.serialize_oferta(aloc.oferta)
             if aloc.professor:
                 aloc_data['professor'] = self.serialize_obj(aloc.professor)
             result.append(aloc_data)
@@ -160,7 +172,7 @@ class AlocacaoController(BaseController):
         for aloc in paginated:
             aloc_data = self.serialize_obj(aloc)
             if aloc.oferta:
-                aloc_data['oferta'] = self.serialize_obj(aloc.oferta)
+                aloc_data['oferta'] = self.serialize_oferta(aloc.oferta)
             if aloc.professor:
                 aloc_data['professor'] = self.serialize_obj(aloc.professor)
             result.append(aloc_data)
