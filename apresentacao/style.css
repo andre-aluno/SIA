@@ -781,7 +781,17 @@ kbd {
 .criterion-card.inactive { opacity: 0.4; }
 .crit-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
 .crit-left { display: flex; align-items: flex-start; gap: 10px; }
-.crit-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.crit-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+.crit-icon svg { width: 18px; height: 18px; stroke-width: 1.75; }
+.criterion-card.active .crit-icon { color: var(--accent); }
 .crit-name { font-size: 14px; font-weight: 600; line-height: 1.3; }
 .crit-rule { font-size: 12px; color: var(--muted); }
 .crit-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
@@ -844,7 +854,13 @@ kbd {
 .score-breakdown { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .score-item { display: flex; flex-direction: column; gap: 3px; }
 .score-item-top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-.score-item-name { color: var(--muted); }
+.score-item-name {
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.score-item-icon { width: 13px; height: 13px; stroke-width: 1.75; flex-shrink: 0; }
 .score-item-value { font-family: var(--font-mono); font-weight: 600; }
 .score-item-value.pos { color: var(--accent); }
 .score-item-value.neg { color: var(--danger); }
@@ -873,13 +889,63 @@ kbd {
   align-items: start;
 }
 .tournament-area { display: flex; flex-direction: column; gap: 16px; }
-.tournament-title {
-  font-size: 14px;
+.coliseum-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.coliseum-queue-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 600;
+  color: var(--text);
+}
+.sel-header-icon { width: 15px; height: 15px; color: var(--accent); flex-shrink: 0; }
+.coliseum-queue-note {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+.coliseum-arena-label {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-family: var(--font-mono);
+}
+.gladiator-shield {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.gladiator-shield svg { width: 18px; height: 18px; stroke-width: 1.75; }
+.shield-winner {
+  background: var(--accent-dim);
+  border-color: rgba(74,222,128,0.4);
+  color: var(--accent);
+}
+.wins-badge {
+  color: var(--warning);
+  font-size: 12px;
+}
+.competitor-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .tournament-competitors { display: flex; flex-direction: column; gap: 8px; }
 .competitor-card {
@@ -900,12 +966,27 @@ kbd {
 .competitor-info { display: flex; flex-direction: column; gap: 4px; }
 .competitor-name { font-size: 14px; font-weight: 600; }
 .competitor-desc { font-size: 12px; color: var(--muted); }
+.competitor-fitness-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
 .competitor-fitness {
   font-family: var(--font-mono);
   font-size: 20px;
   font-weight: 800;
+  color: var(--muted);
 }
 .competitor-fitness.best { color: var(--accent); }
+.competitor-return {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.return-back     { color: var(--muted); background: var(--surface2); }
+.return-selected { color: var(--accent); background: var(--accent-dim); }
 .tournament-result {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -916,7 +997,9 @@ kbd {
   display: flex;
   align-items: center;
 }
-.result-win { color: var(--accent); font-weight: 600; }
+.tournament-result { flex-direction: column; gap: 6px; }
+.result-win  { color: var(--accent); font-weight: 600; font-size: 14px; }
+.result-note { color: var(--muted); font-size: 12px; font-family: var(--font-mono); }
 .selection-theory { display: flex; flex-direction: column; gap: 16px; }
 .theory-card {
   background: var(--surface);
@@ -927,7 +1010,6 @@ kbd {
   flex-direction: column;
   gap: 10px;
 }
-.theory-icon { font-size: 24px; }
 .theory-title { font-size: 15px; font-weight: 600; }
 .theory-card p { font-size: 13px; color: var(--muted); }
 .selection-steps { display: flex; flex-direction: column; gap: 6px; }

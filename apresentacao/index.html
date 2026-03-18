@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -18,8 +19,8 @@
     <div class="nav-labels">
       <button class="nav-label" data-index="0">Intro</button>
       <button class="nav-label" data-index="1">Conceito</button>
-      <button class="nav-label" data-index="2">Gene</button>
-      <button class="nav-label" data-index="3">Cromossomo</button>
+      <button class="nav-label" data-index="2">Cromossomo</button>
+      <button class="nav-label" data-index="3">Gene</button>
       <button class="nav-label" data-index="4">População</button>
       <button class="nav-label" data-index="5">Fitness</button>
       <button class="nav-label" data-index="6">Seleção</button>
@@ -119,15 +120,47 @@
       </div>
     </section>
 
-    <!-- ━━━ SLIDE 2: GENE ━━━ -->
+    <!-- ━━━ SLIDE 2: CROMOSSOMO ━━━ -->
     <section class="slide" id="slide-2">
       <div class="slide-content">
-        <div class="section-tag">02 — Gene</div>
-        <h2 class="slide-title">O Gene: <span class="accent-text">a menor unidade</span> de informação</h2>
+        <div class="section-tag">02 — Cromossomo</div>
+        <h2 class="slide-title">O Cromossomo: <span class="accent-text">8 vagas para preencher</span></h2>
+        <p class="slide-lead">Temos 8 disciplinas que precisam de um professor. Pense em 8 caixinhas vazias. Quando todas estão preenchidas, temos uma <strong>solução completa</strong> — isso é o cromossomo.</p>
+
+        <div class="chromosome-area">
+          <div class="chrom-header-row">
+            <span class="chrom-label">Cromossomo</span>
+            <span class="muted">= uma alocação completa para o semestre</span>
+          </div>
+          <div class="chrom-visual-wrap">
+            <div class="chrom-courses-labels" id="chromCoursesLabels"></div>
+            <div class="chrom-genes-row" id="chromGenesRow"></div>
+            <div class="chrom-prof-labels" id="chromProfLabels"></div>
+          </div>
+          <div class="chrom-legend" id="chromLegend"></div>
+        </div>
+
+        <div class="chrom-reading">
+          <div class="reading-title">Representação em código:</div>
+          <pre class="chrom-code-block"><code id="chromCodeBlock"></code></pre>
+        </div>
+
+        <div class="chrom-actions">
+          <button class="btn-primary" id="newChromBtn">↺ Gerar novo cromossomo aleatório</button>
+          <span class="muted">Cada geração aleatória pode ser boa ou ruim — é o fitness que vai dizer</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 3: GENE ━━━ -->
+    <section class="slide" id="slide-3">
+      <div class="slide-content">
+        <div class="section-tag">03 — Gene</div>
+        <h2 class="slide-title">O Gene: <span class="accent-text">uma única caixinha</span></h2>
 
         <div class="two-col">
           <div class="col-left">
-            <p class="slide-lead">Na biologia, um gene é um segmento do DNA que carrega uma instrução específica. No AG, um gene é a resposta para <strong>uma única decisão</strong> do problema.</p>
+            <p class="slide-lead">Se o cromossomo é a solução inteira, o gene é a <strong>menor parte</strong> dela — a resposta para uma única disciplina. É o valor dentro de uma das 8 caixinhas.</p>
 
             <div class="definition-card">
               <div class="definition-label">No nosso problema de alocação</div>
@@ -158,38 +191,6 @@
               <div class="gene-demo-note" id="geneDemoNote">Cada célula colorida = 1 gene</div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ━━━ SLIDE 3: CROMOSSOMO ━━━ -->
-    <section class="slide" id="slide-3">
-      <div class="slide-content">
-        <div class="section-tag">03 — Cromossomo</div>
-        <h2 class="slide-title">O Cromossomo: <span class="accent-text">uma solução completa</span></h2>
-        <p class="slide-lead">Se um gene responde a uma decisão, o cromossomo responde a <strong>todas as decisões de uma vez</strong>. É o plano de alocação do semestre inteiro em um único objeto.</p>
-
-        <div class="chromosome-area">
-          <div class="chrom-header-row">
-            <span class="chrom-label">Cromossomo</span>
-            <span class="muted">= uma alocação completa para o semestre</span>
-          </div>
-          <div class="chrom-visual-wrap">
-            <div class="chrom-courses-labels" id="chromCoursesLabels"></div>
-            <div class="chrom-genes-row" id="chromGenesRow"></div>
-            <div class="chrom-prof-labels" id="chromProfLabels"></div>
-          </div>
-          <div class="chrom-legend" id="chromLegend"></div>
-        </div>
-
-        <div class="chrom-reading">
-          <div class="reading-title">Representação em código:</div>
-          <pre class="chrom-code-block"><code id="chromCodeBlock"></code></pre>
-        </div>
-
-        <div class="chrom-actions">
-          <button class="btn-primary" id="newChromBtn">↺ Gerar novo cromossomo aleatório</button>
-          <span class="muted">Cada geração aleatória pode ser boa ou ruim — é o fitness que vai dizer</span>
         </div>
       </div>
     </section>
@@ -227,7 +228,7 @@
       <div class="slide-content">
         <div class="section-tag">05 — Fitness</div>
         <h2 class="slide-title">Fitness: <span class="accent-text">como avaliamos</span> uma solução</h2>
-        <p class="slide-lead">O fitness transforma uma solução em um número. Quanto maior, melhor. Ele combina <strong>5 critérios</strong> simultaneamente. Ative e desative cada um para ver o impacto.</p>
+        <p class="slide-lead">Cada cromossomo recebe uma nota. Essa nota — o <strong>fitness</strong> — diz o quanto aquela alocação é boa. O AG usa essa nota para decidir quais soluções merecem continuar e quais devem ser descartadas. Clique nos critérios para ver como cada um afeta a pontuação.</p>
 
         <div class="fitness-layout">
           <div class="fitness-criteria" id="fitnessCriteria">
@@ -235,7 +236,7 @@
             <div class="criterion-card active" data-crit="0">
               <div class="crit-top">
                 <div class="crit-left">
-                  <span class="crit-icon">🎯</span>
+                  <span class="crit-icon"><i data-lucide="circle-check-big"></i></span>
                   <div>
                     <div class="crit-name">Competência</div>
                     <div class="crit-rule">Área do professor deve cobrir a disciplina</div>
@@ -252,7 +253,7 @@
             <div class="criterion-card active" data-crit="1">
               <div class="crit-top">
                 <div class="crit-left">
-                  <span class="crit-icon">🏅</span>
+                  <span class="crit-icon"><i data-lucide="graduation-cap"></i></span>
                   <div>
                     <div class="crit-name">Nível de qualificação</div>
                     <div class="crit-rule">Nível do professor ≥ nível esperado</div>
@@ -269,10 +270,10 @@
             <div class="criterion-card active" data-crit="2">
               <div class="crit-top">
                 <div class="crit-left">
-                  <span class="crit-icon">⏱️</span>
+                  <span class="crit-icon"><i data-lucide="clock-alert"></i></span>
                   <div>
                     <div class="crit-name">Carga máxima</div>
-                    <div class="crit-rule">Nenhum professor ultrapassa seu limite</div>
+                    <div class="crit-rule">Nenhum professor ultrapassa seu limite de horas</div>
                   </div>
                 </div>
                 <div class="crit-right">
@@ -286,7 +287,7 @@
             <div class="criterion-card active" data-crit="3">
               <div class="crit-top">
                 <div class="crit-left">
-                  <span class="crit-icon">👥</span>
+                  <span class="crit-icon"><i data-lucide="users"></i></span>
                   <div>
                     <div class="crit-name">Utilização do corpo docente</div>
                     <div class="crit-rule">Todos os professores devem ter ao menos 1 aula</div>
@@ -303,7 +304,7 @@
             <div class="criterion-card active" data-crit="4">
               <div class="crit-top">
                 <div class="crit-left">
-                  <span class="crit-icon">⚖️</span>
+                  <span class="crit-icon"><i data-lucide="scale"></i></span>
                   <div>
                     <div class="crit-name">Balanceamento de carga</div>
                     <div class="crit-rule">Carga proporcional à capacidade de cada um</div>
@@ -336,32 +337,45 @@
       <div class="slide-content">
         <div class="section-tag">06 — Seleção</div>
         <h2 class="slide-title">Seleção: <span class="accent-text">quem merece</span> se reproduzir?</h2>
-        <p class="slide-lead">Usamos <strong>Seleção por Torneio</strong> — como a fase de grupos de uma Copa do Mundo. Três soluções são sorteadas aleatoriamente. A de maior fitness avança.</p>
+        <p class="slide-lead">Imagine o Coliseu Romano. O imperador sorteia <strong>3 gladiadores</strong> da fila de espera, eles combatem, e o mais forte vence. Mas há uma diferença crucial em relação à história: <strong>nenhum gladiador morre</strong> — todos os 3 voltam para a fila.</p>
 
         <div class="selection-layout">
           <div class="tournament-area">
-            <div class="tournament-title">⚽ Torneio — Grupo G</div>
+
+            <div class="coliseum-header">
+              <div class="coliseum-queue-label">
+                <i data-lucide="users" class="sel-header-icon"></i>
+                Fila de espera — 100 gladiadores
+              </div>
+              <div class="coliseum-queue-note">todos voltam aqui após o combate</div>
+            </div>
+
+            <div class="coliseum-arena-label">O imperador sorteia 3 para o combate</div>
+
             <div class="tournament-competitors" id="tournamentCompetitors">
               <!-- rendered by JS -->
             </div>
+
             <div class="tournament-result" id="tournamentResult">
               <!-- rendered by JS -->
             </div>
-            <button class="btn-primary" id="runTournamentBtn">Executar novo torneio</button>
+
+            <button class="btn-primary" id="runTournamentBtn">Novo combate</button>
           </div>
 
           <div class="selection-theory">
             <div class="theory-card">
-              <div class="theory-icon">🏆</div>
-              <div class="theory-title">Por que torneio e não "o melhor sempre vence"?</div>
-              <p>Se apenas os melhores se reproduzissem, a população perderia diversidade rapidamente e o algoritmo ficaria <strong>preso em ótimos locais</strong>.</p>
-              <p>O torneio dá chance aos medianos — que podem carregar genes valiosos não encontrados nos melhores.</p>
+              <div class="theory-title">A diferença que muda tudo</div>
+              <p>No Coliseu real, os perdedores morrem. No AG, <strong>todos voltam para a fila</strong> — vencedor e perdedores. Isso se chama <strong>seleção com reposição</strong>.</p>
+              <p>Um gladiador forte pode ser sorteado várias vezes na mesma geração e vencer múltiplos combates. Ao final, ele pode ter <strong>várias cópias</strong> na próxima geração — seus genes dominam a população.</p>
+              <p>Gladiadores fracos também permanecem na fila. A diversidade é preservada.</p>
             </div>
             <div class="selection-steps">
-              <div class="sel-step">① Sorteia 3 indivíduos aleatórios da população</div>
-              <div class="sel-step">② Compara os fitness dos 3 competidores</div>
-              <div class="sel-step">③ O de maior fitness é selecionado como pai</div>
-              <div class="sel-step">④ Repete até ter pais suficientes para a nova geração</div>
+              <div class="sel-step">① O imperador sorteia 3 gladiadores aleatórios da fila</div>
+              <div class="sel-step">② Os 3 combatem — quem tem maior fitness vence</div>
+              <div class="sel-step">③ O vencedor é selecionado como pai da próxima geração</div>
+              <div class="sel-step">④ Os 3 voltam para a fila — ninguém é eliminado</div>
+              <div class="sel-step">⑤ Repete até ter pais suficientes para a nova geração</div>
             </div>
           </div>
         </div>

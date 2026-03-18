@@ -82,7 +82,7 @@ document.addEventListener('keydown', (e) => {
 
 function initSlide(i) {
   const inits = [
-    initHero, initConcept, initGene, initChromosome,
+    initHero, initConcept, initChromosome, initGene,
     initPopulation, initFitness, initSelection, initCrossover,
     initMutation, initDemo, () => {}
   ];
@@ -335,11 +335,11 @@ function renderPopulation() {
    SLIDE 5: FITNESS
 ═══════════════════════════════════════════════════ */
 const FITNESS_EXAMPLE = {
-  competency:   { label: '🎯 Competência', val: +800, base: 800 },
-  level:        { label: '🏅 Nível',       val: +250, base: 250 },
-  overload:     { label: '⏱️ Carga máx.',  val:    0, base:   0 },
-  utilization:  { label: '👥 Utilização',  val: -500, base:-500 },
-  balance:      { label: '⚖️ Balanço',     val: +100, base: 100 },
+  competency:   { label: 'Competência', icon: 'circle-check-big', val: +800, base: 800 },
+  level:        { label: 'Nível',       icon: 'graduation-cap',   val: +250, base: 250 },
+  overload:     { label: 'Carga máx.',  icon: 'clock-alert',      val:    0, base:   0 },
+  utilization:  { label: 'Utilização',  icon: 'users',            val: -500, base:-500 },
+  balance:      { label: 'Balanço',     icon: 'scale',            val: +100, base: 100 },
 };
 
 const criteriaKeys = ['competency', 'level', 'overload', 'utilization', 'balance'];
@@ -347,6 +347,7 @@ const criteriaActive = [true, true, true, true, true];
 
 function initFitness() {
   renderFitnessScore();
+  lucide.createIcons();
 
   document.querySelectorAll('.criterion-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -382,7 +383,9 @@ function renderFitnessScore() {
     item.className = 'score-item';
     item.innerHTML = `
       <div class="score-item-top">
-        <span class="score-item-name">${entry.label}</span>
+        <span class="score-item-name">
+          <i data-lucide="${entry.icon}" class="score-item-icon"></i>${entry.label}
+        </span>
         <span class="score-item-value ${active ? sign : 'zero'}">${shown}</span>
       </div>
       <div class="score-bar-wrap">
@@ -392,6 +395,7 @@ function renderFitnessScore() {
     breakdown.appendChild(item);
   });
 
+  lucide.createIcons();
   totalEl.textContent = total > 0 ? `+${total}` : `${total}`;
   totalEl.style.color = total > 0 ? 'var(--accent)' : 'var(--danger)';
 }
@@ -399,39 +403,72 @@ function renderFitnessScore() {
 /* ═══════════════════════════════════════════════════
    SLIDE 6: SELEÇÃO
 ═══════════════════════════════════════════════════ */
-const FAKE_NAMES = ['Solução #14', 'Solução #37', 'Solução #82', 'Solução #5', 'Solução #61', 'Solução #29'];
+const GLADIATOR_NAMES = [
+  'Maximus', 'Spartacus', 'Commodus', 'Decimus', 'Lucius',
+  'Brutus', 'Cassius', 'Titus', 'Flavius', 'Marcus',
+  'Petronius', 'Varro',
+];
+const gladiatorWins = {};
 
 function initSelection() {
   runTournament();
+  lucide.createIcons();
   document.getElementById('runTournamentBtn').addEventListener('click', runTournament);
 }
 
 function runTournament() {
-  const pool = FAKE_NAMES.slice().sort(() => Math.random() - 0.5).slice(0, 3);
-  const fitnesses = pool.map(() => randInt(-500, 1500));
-  const winnerIdx = fitnesses.indexOf(Math.max(...fitnesses));
-
   const container = document.getElementById('tournamentCompetitors');
   const result    = document.getElementById('tournamentResult');
   container.innerHTML = '';
 
-  pool.forEach((name, i) => {
-    const chrom = randChromosome();
+  // Sorteia 3 gladiadores com reposição — o mesmo pode aparecer duas vezes
+  const candidates = Array.from({ length: 3 }, () => {
+    const name    = rnd(GLADIATOR_NAMES);
+    const fitness = calcSimpleFitness(randChromosome());
+    const wins    = gladiatorWins[name] || 0;
+    return { name, fitness, wins };
+  });
+
+  const maxFitness = Math.max(...candidates.map(c => c.fitness));
+  const winnerIdx  = candidates.findIndex(c => c.fitness === maxFitness);
+  gladiatorWins[candidates[winnerIdx].name] = (gladiatorWins[candidates[winnerIdx].name] || 0) + 1;
+
+  candidates.forEach((cand, i) => {
     const isWinner = i === winnerIdx;
+    const fitnessStr = cand.fitness > 0 ? `+${cand.fitness}` : `${cand.fitness}`;
     const card = document.createElement('div');
     card.className = `competitor-card ${isWinner ? 'winner' : 'loser'}`;
-    const matches = COURSES.filter((c, ci) => profById(chrom[ci]).areas.includes(c.area)).length;
     card.innerHTML = `
-      <div class="competitor-info">
-        <div class="competitor-name">${name} ${isWinner ? '🏆' : ''}</div>
-        <div class="competitor-desc">${matches}/${COURSES.length} disciplinas compatíveis</div>
+      <div class="gladiator-shield ${isWinner ? 'shield-winner' : ''}">
+        <i data-lucide="${isWinner ? 'shield-check' : 'shield'}"></i>
       </div>
-      <div class="competitor-fitness ${isWinner ? 'best' : ''}">${fitnesses[i] > 0 ? '+' : ''}${fitnesses[i]}</div>
+      <div class="competitor-info">
+        <div class="competitor-name">${cand.name}</div>
+        <div class="competitor-desc">
+          Força: <strong>${fitnessStr}</strong>
+          ${cand.wins > 0 ? `· <span class="wins-badge">${cand.wins} vitória${cand.wins > 1 ? 's' : ''} anteriores</span>` : ''}
+        </div>
+      </div>
+      <div class="competitor-fitness-col">
+        <span class="competitor-return ${isWinner ? 'return-selected' : 'return-back'}">
+          ${isWinner ? 'selecionado como pai' : 'volta à fila'}
+        </span>
+      </div>
     `;
     container.appendChild(card);
   });
 
-  result.innerHTML = `<span class="result-win">✓ ${pool[winnerIdx]} avança para a reprodução com fitness ${fitnesses[winnerIdx] > 0 ? '+' : ''}${fitnesses[winnerIdx]}</span>`;
+  const w = candidates[winnerIdx];
+  const totalWins = gladiatorWins[w.name];
+  result.innerHTML = `
+    <span class="result-win">${w.name} vence o combate e é selecionado como pai</span>
+    <span class="result-note">
+      Todos os 3 voltam à fila de espera.
+      ${totalWins > 1 ? `<strong>${w.name} já venceu ${totalWins} combates</strong> — pode ter múltiplas cópias na próxima geração.` : 'Continue clicando para ver um gladiador vencer mais de uma vez.'}
+    </span>
+  `;
+
+  lucide.createIcons();
 }
 
 /* ═══════════════════════════════════════════════════
