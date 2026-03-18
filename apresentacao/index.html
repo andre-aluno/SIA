@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Algoritmos Genéticos — Alocação de Professores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── TOP NAV ── -->
+  <nav class="slide-nav">
+    <div class="nav-labels">
+      <button class="nav-label" data-index="0">Intro</button>
+      <button class="nav-label" data-index="1">Conceito</button>
+      <button class="nav-label" data-index="2">Gene</button>
+      <button class="nav-label" data-index="3">Cromossomo</button>
+      <button class="nav-label" data-index="4">População</button>
+      <button class="nav-label" data-index="5">Fitness</button>
+      <button class="nav-label" data-index="6">Seleção</button>
+      <button class="nav-label" data-index="7">Crossover</button>
+      <button class="nav-label" data-index="8">Mutação</button>
+      <button class="nav-label" data-index="9">Demo</button>
+      <button class="nav-label" data-index="10">Resumo</button>
+    </div>
+  </nav>
+
+  <!-- ── PROGRESS BAR ── -->
+  <div class="progress-bar-wrapper">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- ── SLIDES ── -->
+  <main class="slides-container">
+
+    <!-- ━━━ SLIDE 0: HERO ━━━ -->
+    <section class="slide active" id="slide-0">
+      <canvas class="hero-canvas" id="heroCanvas"></canvas>
+      <div class="slide-content hero-content">
+        <div class="hero-badge">Ciência de Dados · Algoritmos Bio-inspirados</div>
+        <h1 class="hero-title">Algoritmos<br /><span class="accent-text">Genéticos</span></h1>
+        <p class="hero-subtitle">Como a evolução da natureza resolve problemas que nenhum computador consegue resolver por força bruta</p>
+
+        <div class="hero-stats">
+          <div class="stat-card">
+            <span class="stat-number">8<sup>20</sup></span>
+            <span class="stat-label">combinações possíveis</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number">∞</span>
+            <span class="stat-label">tempo para testar todas</span>
+          </div>
+          <div class="stat-card accent-stat">
+            <span class="stat-number accent-text">AG</span>
+            <span class="stat-label">encontra uma ótima solução</span>
+          </div>
+        </div>
+
+        <div class="hero-problem">
+          <div class="problem-card">
+            <span class="problem-icon">🎓</span>
+            <div class="problem-text">
+              <strong>Nosso problema:</strong> alocar <em>8 professores</em> em <em>20 ofertas de disciplinas</em>
+              considerando competências, carga horária e nível de qualificação — ao mesmo tempo.
+            </div>
+          </div>
+        </div>
+
+        <p class="hero-cta">Pressione <kbd>↓</kbd> para começar</p>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 1: CONCEITO ━━━ -->
+    <section class="slide" id="slide-1">
+      <div class="slide-content">
+        <div class="section-tag">01 — Conceito</div>
+        <h2 class="slide-title">A Natureza já sabe <span class="accent-text">resolver problemas difíceis</span></h2>
+        <p class="slide-lead">Darwin observou que organismos mais adaptados sobrevivem, reproduzem-se e passam suas características adiante. O AG copia exatamente esse processo para buscar boas soluções.</p>
+
+        <div class="concept-grid">
+          <div class="concept-col">
+            <div class="concept-header biology-header">🧬 Biologia</div>
+            <div class="concept-item" data-pair="0">Organismo / Ser vivo</div>
+            <div class="concept-item" data-pair="1">DNA / Cromossomo</div>
+            <div class="concept-item" data-pair="2">Gene (trecho do DNA)</div>
+            <div class="concept-item" data-pair="3">Grupo de organismos</div>
+            <div class="concept-item" data-pair="4">Aptidão para sobreviver</div>
+            <div class="concept-item" data-pair="5">Reprodução</div>
+            <div class="concept-item" data-pair="6">Mutação genética</div>
+          </div>
+          <div class="concept-arrows">
+            <div class="concept-arrow-row" data-pair="0">→</div>
+            <div class="concept-arrow-row" data-pair="1">→</div>
+            <div class="concept-arrow-row" data-pair="2">→</div>
+            <div class="concept-arrow-row" data-pair="3">→</div>
+            <div class="concept-arrow-row" data-pair="4">→</div>
+            <div class="concept-arrow-row" data-pair="5">→</div>
+            <div class="concept-arrow-row" data-pair="6">→</div>
+          </div>
+          <div class="concept-col">
+            <div class="concept-header ag-header">⚙️ Algoritmo Genético</div>
+            <div class="concept-item ag-item" data-pair="0">Indivíduo (uma solução candidata)</div>
+            <div class="concept-item ag-item" data-pair="1">Cromossomo (representação da solução)</div>
+            <div class="concept-item ag-item" data-pair="2">Gene (um elemento da solução)</div>
+            <div class="concept-item ag-item" data-pair="3">População (várias soluções)</div>
+            <div class="concept-item ag-item" data-pair="4">Fitness (qualidade da solução)</div>
+            <div class="concept-item ag-item" data-pair="5">Crossover (combinar soluções)</div>
+            <div class="concept-item ag-item" data-pair="6">Mutação (alterar aleatoriamente)</div>
+          </div>
+        </div>
+
+        <div class="concept-detail-box" id="conceptDetailBox">
+          <span class="muted">← Clique em qualquer linha para ver como ela se aplica ao nosso problema</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 2: GENE ━━━ -->
+    <section class="slide" id="slide-2">
+      <div class="slide-content">
+        <div class="section-tag">02 — Gene</div>
+        <h2 class="slide-title">O Gene: <span class="accent-text">a menor unidade</span> de informação</h2>
+
+        <div class="two-col">
+          <div class="col-left">
+            <p class="slide-lead">Na biologia, um gene é um segmento do DNA que carrega uma instrução específica. No AG, um gene é a resposta para <strong>uma única decisão</strong> do problema.</p>
+
+            <div class="definition-card">
+              <div class="definition-label">No nosso problema de alocação</div>
+              <div class="definition-content">
+                Um gene responde à pergunta:<br />
+                <span class="accent-text">"Qual professor leciona esta disciplina?"</span>
+              </div>
+            </div>
+
+            <div class="comparison-block">
+              <div class="comparison-row">
+                <span class="comp-tag biology-tag">Biologia</span>
+                <span class="comp-value">código que define a cor dos olhos</span>
+              </div>
+              <div class="comparison-row">
+                <span class="comp-tag ag-tag">AG</span>
+                <span class="comp-value">ID do professor alocado à disciplina</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-right">
+            <div class="gene-demo-area">
+              <div class="gene-demo-title">Clique num gene para trocar o professor</div>
+              <div class="gene-table" id="geneTable">
+                <!-- rendered by JS -->
+              </div>
+              <div class="gene-demo-note" id="geneDemoNote">Cada célula colorida = 1 gene</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 3: CROMOSSOMO ━━━ -->
+    <section class="slide" id="slide-3">
+      <div class="slide-content">
+        <div class="section-tag">03 — Cromossomo</div>
+        <h2 class="slide-title">O Cromossomo: <span class="accent-text">uma solução completa</span></h2>
+        <p class="slide-lead">Se um gene responde a uma decisão, o cromossomo responde a <strong>todas as decisões de uma vez</strong>. É o plano de alocação do semestre inteiro em um único objeto.</p>
+
+        <div class="chromosome-area">
+          <div class="chrom-header-row">
+            <span class="chrom-label">Cromossomo</span>
+            <span class="muted">= uma alocação completa para o semestre</span>
+          </div>
+          <div class="chrom-visual-wrap">
+            <div class="chrom-courses-labels" id="chromCoursesLabels"></div>
+            <div class="chrom-genes-row" id="chromGenesRow"></div>
+            <div class="chrom-prof-labels" id="chromProfLabels"></div>
+          </div>
+          <div class="chrom-legend" id="chromLegend"></div>
+        </div>
+
+        <div class="chrom-reading">
+          <div class="reading-title">Lendo este cromossomo:</div>
+          <div class="reading-grid" id="readingGrid"></div>
+        </div>
+
+        <div class="chrom-actions">
+          <button class="btn-primary" id="newChromBtn">↺ Gerar novo cromossomo aleatório</button>
+          <span class="muted">Cada geração aleatória pode ser boa ou ruim — é o fitness que vai dizer</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 4: POPULAÇÃO ━━━ -->
+    <section class="slide" id="slide-4">
+      <div class="slide-content">
+        <div class="section-tag">04 — População</div>
+        <h2 class="slide-title">A População: <span class="accent-text">100 apostas simultâneas</span></h2>
+        <p class="slide-lead">Em vez de testar uma solução por vez, o AG mantém uma <strong>população inteira</strong> de soluções candidatas. Elas competem, combinam e evoluem juntas a cada geração.</p>
+
+        <div class="population-layout">
+          <div class="population-grid" id="populationGrid">
+            <!-- rendered by JS: 24 mini-chromosomes -->
+          </div>
+          <div class="population-side">
+            <div class="pop-legend">
+              <div class="pop-legend-item"><span class="pop-dot good-dot"></span>Fitness alto (boas alocações)</div>
+              <div class="pop-legend-item"><span class="pop-dot mid-dot"></span>Fitness médio</div>
+              <div class="pop-legend-item"><span class="pop-dot bad-dot"></span>Fitness baixo (muitos erros)</div>
+            </div>
+            <div class="pop-stats" id="popStats"></div>
+          </div>
+        </div>
+
+        <div class="pop-actions">
+          <button class="btn-primary" id="newPopBtn">↺ Gerar nova população aleatória</button>
+          <p class="slide-note">Na prática usamos <strong>100 indivíduos</strong>. Aqui mostramos 24 para facilitar a visualização.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 5: FITNESS ━━━ -->
+    <section class="slide" id="slide-5">
+      <div class="slide-content">
+        <div class="section-tag">05 — Fitness</div>
+        <h2 class="slide-title">Fitness: <span class="accent-text">como avaliamos</span> uma solução</h2>
+        <p class="slide-lead">O fitness transforma uma solução em um número. Quanto maior, melhor. Ele combina <strong>5 critérios</strong> simultaneamente. Ative e desative cada um para ver o impacto.</p>
+
+        <div class="fitness-layout">
+          <div class="fitness-criteria" id="fitnessCriteria">
+
+            <div class="criterion-card active" data-crit="0">
+              <div class="crit-top">
+                <div class="crit-left">
+                  <span class="crit-icon">🎯</span>
+                  <div>
+                    <div class="crit-name">Competência</div>
+                    <div class="crit-rule">Área do professor deve cobrir a disciplina</div>
+                  </div>
+                </div>
+                <div class="crit-right">
+                  <span class="crit-badge hard-badge">HARD</span>
+                  <div class="crit-toggle" id="ctoggle0"></div>
+                </div>
+              </div>
+              <div class="crit-formula">−1.000 por incompatibilidade · +200 por match</div>
+            </div>
+
+            <div class="criterion-card active" data-crit="1">
+              <div class="crit-top">
+                <div class="crit-left">
+                  <span class="crit-icon">🏅</span>
+                  <div>
+                    <div class="crit-name">Nível de qualificação</div>
+                    <div class="crit-rule">Nível do professor ≥ nível esperado</div>
+                  </div>
+                </div>
+                <div class="crit-right">
+                  <span class="crit-badge soft-badge">SOFT</span>
+                  <div class="crit-toggle" id="ctoggle1"></div>
+                </div>
+              </div>
+              <div class="crit-formula">+50 por par adequado</div>
+            </div>
+
+            <div class="criterion-card active" data-crit="2">
+              <div class="crit-top">
+                <div class="crit-left">
+                  <span class="crit-icon">⏱️</span>
+                  <div>
+                    <div class="crit-name">Carga máxima</div>
+                    <div class="crit-rule">Nenhum professor ultrapassa seu limite</div>
+                  </div>
+                </div>
+                <div class="crit-right">
+                  <span class="crit-badge hard-badge">HARD</span>
+                  <div class="crit-toggle" id="ctoggle2"></div>
+                </div>
+              </div>
+              <div class="crit-formula">−5.000 × horas excedidas</div>
+            </div>
+
+            <div class="criterion-card active" data-crit="3">
+              <div class="crit-top">
+                <div class="crit-left">
+                  <span class="crit-icon">👥</span>
+                  <div>
+                    <div class="crit-name">Utilização do corpo docente</div>
+                    <div class="crit-rule">Todos os professores devem ter ao menos 1 aula</div>
+                  </div>
+                </div>
+                <div class="crit-right">
+                  <span class="crit-badge hard-badge">HARD</span>
+                  <div class="crit-toggle" id="ctoggle3"></div>
+                </div>
+              </div>
+              <div class="crit-formula">−500 × (total − alocados)²</div>
+            </div>
+
+            <div class="criterion-card active" data-crit="4">
+              <div class="crit-top">
+                <div class="crit-left">
+                  <span class="crit-icon">⚖️</span>
+                  <div>
+                    <div class="crit-name">Balanceamento de carga</div>
+                    <div class="crit-rule">Carga proporcional à capacidade de cada um</div>
+                  </div>
+                </div>
+                <div class="crit-right">
+                  <span class="crit-badge soft-badge">SOFT</span>
+                  <div class="crit-toggle" id="ctoggle4"></div>
+                </div>
+              </div>
+              <div class="crit-formula">+100 × (1 − desvio padrão das proporções)</div>
+            </div>
+
+          </div>
+
+          <div class="fitness-score-panel">
+            <div class="score-title">Exemplo de avaliação</div>
+            <div class="score-breakdown" id="scoreBreakdown"></div>
+            <div class="score-total">
+              <span class="score-total-label">Fitness total</span>
+              <span class="score-total-value" id="totalFitnessValue">+1.350</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 6: SELEÇÃO ━━━ -->
+    <section class="slide" id="slide-6">
+      <div class="slide-content">
+        <div class="section-tag">06 — Seleção</div>
+        <h2 class="slide-title">Seleção: <span class="accent-text">quem merece</span> se reproduzir?</h2>
+        <p class="slide-lead">Usamos <strong>Seleção por Torneio</strong> — como a fase de grupos de uma Copa do Mundo. Três soluções são sorteadas aleatoriamente. A de maior fitness avança.</p>
+
+        <div class="selection-layout">
+          <div class="tournament-area">
+            <div class="tournament-title">⚽ Torneio — Grupo G</div>
+            <div class="tournament-competitors" id="tournamentCompetitors">
+              <!-- rendered by JS -->
+            </div>
+            <div class="tournament-result" id="tournamentResult">
+              <!-- rendered by JS -->
+            </div>
+            <button class="btn-primary" id="runTournamentBtn">Executar novo torneio</button>
+          </div>
+
+          <div class="selection-theory">
+            <div class="theory-card">
+              <div class="theory-icon">🏆</div>
+              <div class="theory-title">Por que torneio e não "o melhor sempre vence"?</div>
+              <p>Se apenas os melhores se reproduzissem, a população perderia diversidade rapidamente e o algoritmo ficaria <strong>preso em ótimos locais</strong>.</p>
+              <p>O torneio dá chance aos medianos — que podem carregar genes valiosos não encontrados nos melhores.</p>
+            </div>
+            <div class="selection-steps">
+              <div class="sel-step">① Sorteia 3 indivíduos aleatórios da população</div>
+              <div class="sel-step">② Compara os fitness dos 3 competidores</div>
+              <div class="sel-step">③ O de maior fitness é selecionado como pai</div>
+              <div class="sel-step">④ Repete até ter pais suficientes para a nova geração</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 7: CROSSOVER ━━━ -->
+    <section class="slide" id="slide-7">
+      <div class="slide-content">
+        <div class="section-tag">07 — Crossover</div>
+        <h2 class="slide-title">Crossover: <span class="accent-text">combinando</span> o melhor dos pais</h2>
+        <p class="slide-lead">O crossover de <strong>ponto único</strong> escolhe um corte aleatório e troca os segmentos entre dois pais, gerando dois filhos com características herdadas de ambos.</p>
+
+        <div class="crossover-layout">
+          <div class="crossover-demo">
+            <div class="cx-parents-area">
+              <div class="cx-row">
+                <span class="cx-role parent-role">Pai A</span>
+                <div class="cx-genes-wrap" id="cxParentA"></div>
+              </div>
+              <div class="cx-row">
+                <span class="cx-role parent-role">Pai B</span>
+                <div class="cx-genes-wrap" id="cxParentB"></div>
+              </div>
+            </div>
+
+            <div class="cx-slider-area">
+              <label class="cx-slider-label">Arraste o ponto de corte:</label>
+              <div class="cx-slider-row">
+                <span class="muted">1</span>
+                <input type="range" id="cxSlider" min="1" max="4" value="2" class="cx-slider" />
+                <span class="muted">4</span>
+                <span class="cx-cut-value" id="cxCutValue">posição 2</span>
+              </div>
+            </div>
+
+            <div class="cx-children-area">
+              <div class="cx-row">
+                <span class="cx-role child-role">Filho A</span>
+                <div class="cx-genes-wrap" id="cxChildA"></div>
+              </div>
+              <div class="cx-row">
+                <span class="cx-role child-role">Filho B</span>
+                <div class="cx-genes-wrap" id="cxChildB"></div>
+              </div>
+            </div>
+
+            <button class="btn-primary" id="newCxParentsBtn">↺ Novos pais aleatórios</button>
+          </div>
+
+          <div class="crossover-theory">
+            <div class="cx-insight">
+              <div class="cx-insight-title">Por que funciona?</div>
+              <p>Se o <strong>Pai A</strong> aprendeu a alocar bem Cálculo e Física, e o <strong>Pai B</strong> aprendeu a alocar bem Programação e Estatística — o Filho A herda os dois aprendizados.</p>
+              <p>Ao longo das gerações, os <strong>"pedaços bons"</strong> de diferentes soluções vão se combinando naturalmente.</p>
+            </div>
+            <div class="cx-analysis" id="cxAnalysis">
+              <!-- updated by JS as slider moves -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 8: MUTAÇÃO ━━━ -->
+    <section class="slide" id="slide-8">
+      <div class="slide-content">
+        <div class="section-tag">08 — Mutação</div>
+        <h2 class="slide-title">Mutação: <span class="accent-text">introduzindo novidade</span></h2>
+        <p class="slide-lead">Sem mutação, o algoritmo só pode combinar o que já existe. A mutação <strong>explora territórios novos</strong> — como uma característica que surgiu do nada e por acaso se prova vantajosa.</p>
+
+        <div class="mutation-layout">
+          <div class="mutation-demo">
+            <div class="mut-row-label">Antes da mutação</div>
+            <div class="mut-genes-row" id="mutBefore"></div>
+
+            <div class="mut-prob-control">
+              <label class="mut-slider-label">Probabilidade de mutação por gene:</label>
+              <div class="mut-slider-row">
+                <input type="range" id="mutSlider" min="5" max="50" value="20" step="5" class="mut-slider" />
+                <span class="mut-prob-value" id="mutProbDisplay">20%</span>
+              </div>
+            </div>
+
+            <div class="mut-row-label">Depois da mutação</div>
+            <div class="mut-genes-row" id="mutAfter"></div>
+            <div class="mut-changed-info" id="mutChangedInfo"></div>
+
+            <div class="mut-actions">
+              <button class="btn-primary" id="applyMutBtn">⚡ Aplicar mutação</button>
+              <button class="btn-secondary" id="resetMutBtn">↺ Resetar</button>
+            </div>
+          </div>
+
+          <div class="mutation-theory">
+            <div class="mut-why-card">
+              <div class="mut-why-title">Por que é essencial?</div>
+              <div class="mut-scenario bad-scenario">
+                <strong>Sem mutação:</strong> a população converge para soluções parecidas. O algoritmo fica "preso" em uma boa solução, mas não ótima.
+              </div>
+              <div class="mut-scenario good-scenario">
+                <strong>Com mutação:</strong> pequenas trocas aleatórias exploram regiões do espaço de busca que nunca seriam alcançadas pelo crossover sozinho.
+              </div>
+            </div>
+            <div class="mut-analogy-card">
+              <span class="mut-analogy-icon">🦋</span>
+              <span>Como uma mutação genética rara que, por acaso, resulta em uma vantagem evolutiva para toda a espécie.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 9: DEMONSTRAÇÃO ━━━ -->
+    <section class="slide" id="slide-9">
+      <div class="slide-content demo-content">
+        <div class="section-tag">09 — Demonstração</div>
+        <h2 class="slide-title">O AG <span class="accent-text">evoluindo</span> ao vivo</h2>
+
+        <div class="demo-layout">
+          <div class="demo-chart-wrap">
+            <canvas id="evolutionChart"></canvas>
+          </div>
+          <div class="demo-panel">
+            <div class="demo-controls">
+              <button class="btn-primary" id="demoPlayBtn">▶ Iniciar</button>
+              <button class="btn-secondary" id="demoPauseBtn" disabled>⏸ Pausar</button>
+              <button class="btn-secondary" id="demoResetBtn">↺ Resetar</button>
+            </div>
+            <div class="demo-stats-grid">
+              <div class="demo-stat-card">
+                <span class="demo-stat-label">Geração</span>
+                <span class="demo-stat-value" id="demoGeneration">0</span>
+              </div>
+              <div class="demo-stat-card">
+                <span class="demo-stat-label">Melhor fitness</span>
+                <span class="demo-stat-value accent-text" id="demoBestFitness">—</span>
+              </div>
+              <div class="demo-stat-card">
+                <span class="demo-stat-label">Média</span>
+                <span class="demo-stat-value" id="demoAvgFitness">—</span>
+              </div>
+              <div class="demo-stat-card">
+                <span class="demo-stat-label">Compatibilidade</span>
+                <span class="demo-stat-value" id="demoCompatibility">—</span>
+              </div>
+            </div>
+            <div class="demo-best-solution">
+              <div class="demo-best-title">Melhor solução atual</div>
+              <div class="demo-best-genes" id="demoBestGenes"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 10: RESUMO ━━━ -->
+    <section class="slide" id="slide-10">
+      <div class="slide-content">
+        <div class="section-tag">10 — Resumo</div>
+        <h2 class="slide-title">Tudo em <span class="accent-text">um lugar só</span></h2>
+
+        <div class="summary-layout">
+          <div class="summary-table-wrap">
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Conceito</th>
+                  <th>Definição geral</th>
+                  <th>No nosso problema</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><span class="concept-badge">Gene</span></td><td>Unidade mínima de informação</td><td>ID do professor alocado a uma disciplina</td></tr>
+                <tr><td><span class="concept-badge">Cromossomo</span></td><td>Uma solução completa</td><td>Lista de alocações do semestre inteiro</td></tr>
+                <tr><td><span class="concept-badge">População</span></td><td>Conjunto de soluções candidatas</td><td>100 planos de alocação simultâneos</td></tr>
+                <tr><td><span class="concept-badge">Fitness</span></td><td>Qualidade de uma solução</td><td>Score: competência + carga + nível + balanço</td></tr>
+                <tr><td><span class="concept-badge">Seleção</span></td><td>Escolher quem se reproduz</td><td>Torneio de 3: maior fitness vence</td></tr>
+                <tr><td><span class="concept-badge">Crossover</span></td><td>Combinar dois indivíduos</td><td>Trocar segmentos de dois planos de alocação</td></tr>
+                <tr><td><span class="concept-badge">Mutação</span></td><td>Alterar aleatoriamente</td><td>Substituir professor de uma disciplina por outro</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="summary-cards-col">
+            <div class="summary-info-card when-card">
+              <div class="summary-card-title">Quando usar AG?</div>
+              <ul class="summary-list">
+                <li>Espaço de busca enorme (força bruta inviável)</li>
+                <li>Múltiplos objetivos conflitantes</li>
+                <li>Sem solução analítica conhecida</li>
+                <li>Boa solução é aceitável (não precisa ser perfeita)</li>
+              </ul>
+            </div>
+            <div class="summary-info-card next-card">
+              <div class="summary-card-title">Próximos passos</div>
+              <ul class="summary-list">
+                <li><strong>Elitismo</strong> — garantir que o melhor sobreviva</li>
+                <li><strong>NSGA-II</strong> — AG multi-objetivo sem agregação</li>
+                <li><strong>PSO</strong> — algoritmo de enxame de partículas</li>
+                <li><strong>Prog. Genética</strong> — o código é o cromossomo</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="final-note">
+          <span class="muted">Pressione <kbd>↑</kbd> para revisar qualquer seção · Feito com AG + ❤️</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── DOTS NAV (right side) ── -->
+  <div class="dots-nav" id="dotsNav"></div>
+
+  <!-- ── KEY HINT (bottom right) ── -->
+  <div class="key-hint" id="keyHint">
+    <span class="key-hint-keys">↑ ↓ navegar</span>
+    <span class="key-hint-counter" id="keyHintCounter">1 / 11</span>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
