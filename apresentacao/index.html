@@ -46,30 +46,27 @@
         <h1 class="hero-title">Algoritmos<br /><span class="accent-text">Genéticos</span></h1>
         <p class="hero-subtitle">Como a evolução da natureza resolve problemas que nenhum computador consegue resolver por força bruta</p>
 
-        <div class="hero-stats">
-          <div class="stat-card">
-            <span class="stat-number">8<sup>20</sup></span>
-            <span class="stat-label">combinações possíveis</span>
+        <div class="hero-cards">
+          <div class="hero-info-card">
+            <div class="hero-card-title">O problema</div>
+            <div class="hero-card-text">Alocar 8 professores em 20 disciplinas gera <strong>8²⁰</strong> combinações. Mais de um quintilhão de possibilidades.</div>
           </div>
-          <div class="stat-card">
-            <span class="stat-number">∞</span>
-            <span class="stat-label">tempo para testar todas</span>
+          <div class="hero-info-card">
+            <div class="hero-card-title">A solução</div>
+            <div class="hero-card-text">Imitar a <strong>evolução natural</strong>: populações, seleção, cruzamento e mutação convergem para boas soluções.</div>
           </div>
-          <div class="stat-card accent-stat">
-            <span class="stat-number accent-text">AG</span>
-            <span class="stat-label">encontra uma ótima solução</span>
+          <div class="hero-info-card hero-info-card--accent">
+            <div class="hero-card-title">O resultado</div>
+            <div class="hero-card-text">Em <strong>50 gerações</strong>, o AG encontra alocações quase perfeitas — sem testar todas as possibilidades.</div>
           </div>
         </div>
 
-        <div class="hero-problem">
-          <div class="problem-card">
-            <span class="problem-icon">🎓</span>
-            <div class="problem-text">
-              <strong>Nosso problema:</strong> alocar <em>8 professores</em> em <em>20 ofertas de disciplinas</em>
-              considerando competências, carga horária e nível de qualificação — ao mesmo tempo.
-            </div>
-          </div>
-        </div>
+        <pre class="hero-code-block"><code><span class="c-muted"># O espaço de busca cresce exponencialmente</span>
+<span class="c-yellow">combinações</span> = <span class="c-green">8</span> ** <span class="c-green">20</span>
+<span class="c-yellow">print</span>(<span class="c-pink">f"Possibilidades: {combinações:,.0f}""</span>)
+
+<span class="c-muted"># Possibilidades: 1.152.921.504.606.846.976</span>
+<span class="c-muted"># Verificar 1 por microssegundo → 38 bilhões de anos ⏳</span></code></pre>
 
         <p class="hero-cta">Pressione <kbd>↓</kbd> para começar</p>
       </div>
@@ -83,35 +80,37 @@
         <p class="slide-lead">Darwin observou que organismos mais adaptados sobrevivem, reproduzem-se e passam suas características adiante. O AG copia exatamente esse processo para buscar boas soluções.</p>
 
         <div class="concept-grid">
-          <div class="concept-col">
-            <div class="concept-header biology-header">🧬 Biologia</div>
-            <div class="concept-item" data-pair="0">Organismo / Ser vivo</div>
-            <div class="concept-item" data-pair="1">DNA / Cromossomo</div>
-            <div class="concept-item" data-pair="2">Gene (trecho do DNA)</div>
-            <div class="concept-item" data-pair="3">Grupo de organismos</div>
-            <div class="concept-item" data-pair="4">Aptidão para sobreviver</div>
-            <div class="concept-item" data-pair="5">Reprodução</div>
-            <div class="concept-item" data-pair="6">Mutação genética</div>
-          </div>
-          <div class="concept-arrows">
-            <div class="concept-arrow-row" data-pair="0">→</div>
-            <div class="concept-arrow-row" data-pair="1">→</div>
-            <div class="concept-arrow-row" data-pair="2">→</div>
-            <div class="concept-arrow-row" data-pair="3">→</div>
-            <div class="concept-arrow-row" data-pair="4">→</div>
-            <div class="concept-arrow-row" data-pair="5">→</div>
-            <div class="concept-arrow-row" data-pair="6">→</div>
-          </div>
-          <div class="concept-col">
-            <div class="concept-header ag-header">⚙️ Algoritmo Genético</div>
-            <div class="concept-item ag-item" data-pair="0">Indivíduo (uma solução candidata)</div>
-            <div class="concept-item ag-item" data-pair="1">Cromossomo (representação da solução)</div>
-            <div class="concept-item ag-item" data-pair="2">Gene (um elemento da solução)</div>
-            <div class="concept-item ag-item" data-pair="3">População (várias soluções)</div>
-            <div class="concept-item ag-item" data-pair="4">Fitness (qualidade da solução)</div>
-            <div class="concept-item ag-item" data-pair="5">Crossover (combinar soluções)</div>
-            <div class="concept-item ag-item" data-pair="6">Mutação (alterar aleatoriamente)</div>
-          </div>
+          <div class="concept-header biology-header">🧬 Biologia</div>
+          <div class="concept-header concept-header--arrow"></div>
+          <div class="concept-header ag-header">⚙️ Algoritmo Genético</div>
+
+          <div class="concept-item" data-pair="0">Organismo / Ser vivo</div>
+          <div class="concept-arrow-row" data-pair="0">→</div>
+          <div class="concept-item ag-item" data-pair="0">Indivíduo (uma solução candidata)</div>
+
+          <div class="concept-item" data-pair="1">DNA / Cromossomo</div>
+          <div class="concept-arrow-row" data-pair="1">→</div>
+          <div class="concept-item ag-item" data-pair="1">Cromossomo (representação da solução)</div>
+
+          <div class="concept-item" data-pair="2">Gene (trecho do DNA)</div>
+          <div class="concept-arrow-row" data-pair="2">→</div>
+          <div class="concept-item ag-item" data-pair="2">Gene (um elemento da solução)</div>
+
+          <div class="concept-item" data-pair="3">Grupo de organismos</div>
+          <div class="concept-arrow-row" data-pair="3">→</div>
+          <div class="concept-item ag-item" data-pair="3">População (várias soluções)</div>
+
+          <div class="concept-item" data-pair="4">Aptidão para sobreviver</div>
+          <div class="concept-arrow-row" data-pair="4">→</div>
+          <div class="concept-item ag-item" data-pair="4">Fitness (qualidade da solução)</div>
+
+          <div class="concept-item" data-pair="5">Reprodução</div>
+          <div class="concept-arrow-row" data-pair="5">→</div>
+          <div class="concept-item ag-item" data-pair="5">Crossover (combinar soluções)</div>
+
+          <div class="concept-item" data-pair="6">Mutação genética</div>
+          <div class="concept-arrow-row" data-pair="6">→</div>
+          <div class="concept-item ag-item" data-pair="6">Mutação (alterar aleatoriamente)</div>
         </div>
 
         <div class="concept-detail-box" id="conceptDetailBox">
@@ -184,8 +183,8 @@
         </div>
 
         <div class="chrom-reading">
-          <div class="reading-title">Lendo este cromossomo:</div>
-          <div class="reading-grid" id="readingGrid"></div>
+          <div class="reading-title">Representação em código:</div>
+          <pre class="chrom-code-block"><code id="chromCodeBlock"></code></pre>
         </div>
 
         <div class="chrom-actions">

@@ -179,7 +179,7 @@ function renderGeneTable() {
     row.innerHTML = `
       <span class="gene-course-name">${course.name}</span>
       <div class="gene-cell" style="background:${prof.color}" data-i="${i}">${prof.short}</div>
-      <span class="gene-prof-name">Prof. ${prof.name} · ${prof.areas.join(', ')}</span>
+      <span class="gene-prof-name">id ${prof.id} · Prof. ${prof.name}</span>
     `;
     table.appendChild(row);
   });
@@ -250,23 +250,25 @@ function renderChromosome() {
     if (!usedProfs.has(p.id)) return;
     const li = document.createElement('div');
     li.className = 'legend-item';
-    li.innerHTML = `<span class="legend-dot" style="background:${p.color}"></span>Prof. ${p.name} (${p.areas.join('/')})`;
+    li.innerHTML = `<span class="legend-dot" style="background:${p.color}"></span>id ${p.id} · Prof. ${p.name}`;
     legend.appendChild(li);
   });
 
-  // Reading
-  reading.innerHTML = '';
-  COURSES.forEach((course, i) => {
+  // Python code representation
+  const codeEl = document.getElementById('chromCodeBlock');
+  if (!codeEl) return;
+
+  const arrayLiteral = chromState.map(id => id).join(', ');
+  const lines = COURSES.map((course, i) => {
     const prof = profById(chromState[i]);
     const match = prof.areas.includes(course.area);
-    const item = document.createElement('div');
-    item.className = 'reading-item';
-    item.innerHTML = `
-      <span class="reading-dot" style="background:${prof.color}"></span>
-      <span>${course.name} → <strong>Prof. ${prof.name}</strong> ${match ? '✅' : '⚠️'}</span>
-    `;
-    reading.appendChild(item);
-  });
+    return `  <span class="c-green">${prof.id}</span>,  <span class="c-muted"># pos ${i} · ${course.name} → Prof. ${prof.name}</span>`;
+  }).join('\n');
+
+  codeEl.innerHTML =
+    `<span class="c-yellow">cromossomo</span> = [\n` +
+    lines + `\n` +
+    `]`
 }
 
 /* ═══════════════════════════════════════════════════
