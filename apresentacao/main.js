@@ -84,7 +84,7 @@ function initSlide(i) {
   const inits = [
     initHero, initConcept, initChromosome, initGene,
     initPopulation, initFitness, initSelection, initCrossover,
-    initMutation, initDemo, () => {}
+    initMutation, initDemo, initMapSlide, () => {}
   ];
   if (inits[i]) inits[i]();
 }
@@ -475,26 +475,61 @@ function runTournament() {
    SLIDE 7: CROSSOVER
 ═══════════════════════════════════════════════════ */
 let cxParentA = [], cxParentB = [];
+let currentCxCut = 4;
 
 function initCrossover() {
   newCxParents();
-  document.getElementById('cxSlider').addEventListener('input', function(e) {
-    e.stopPropagation();
-    renderCrossover(parseInt(this.value));
-  });
   document.getElementById('newCxParentsBtn').addEventListener('click', newCxParents);
 }
 
 function newCxParents() {
   cxParentA = randChromosome();
   cxParentB = randChromosome();
-  const slider = document.getElementById('cxSlider');
-  renderCrossover(parseInt(slider.value));
+  renderCrossover(currentCxCut);
+}
+
+function renderRuler(cut) {
+  const ruler = document.getElementById('cxRuler');
+  if (!ruler) return;
+  ruler.innerHTML = '';
+  const N = COURSES.length;
+  for (let i = 0; i < N; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'cx-ruler-slot';
+    slot.textContent = i;
+    ruler.appendChild(slot);
+    if (i < N - 1) {
+      const gap = document.createElement('div');
+      gap.className = 'cx-ruler-gap' + (cut === i + 1 ? ' active' : '');
+      gap.dataset.cut = i + 1;
+      const inner = document.createElement('div');
+      inner.className = 'cx-ruler-gap-inner';
+      gap.appendChild(inner);
+      gap.addEventListener('click', () => {
+        currentCxCut = i + 1;
+        renderCrossover(currentCxCut);
+      });
+      ruler.appendChild(gap);
+    }
+  }
+}
+
+function updateCutLine(cut) {
+  const cutLine    = document.getElementById('cxCutLine');
+  const canvas     = document.getElementById('cxCanvas');
+  const parentWrap = document.getElementById('cxParentA');
+  if (!cutLine || !canvas || !parentWrap) return;
+  const genes = parentWrap.querySelectorAll('.cx-gene');
+  if (genes.length < 2 || cut < 1 || cut > genes.length - 1) return;
+  const canvasRect = canvas.getBoundingClientRect();
+  const prevRect   = genes[cut - 1].getBoundingClientRect();
+  const nextRect   = genes[cut].getBoundingClientRect();
+  const midX       = (prevRect.right + nextRect.left) / 2;
+  cutLine.style.left = (midX - canvasRect.left) + 'px';
 }
 
 function renderCrossover(cut) {
-  document.getElementById('cxCutValue').textContent = `posição ${cut}`;
-
+  renderRuler(cut);
   renderCxRow('cxParentA', cxParentA, cut, 'parent');
   renderCxRow('cxParentB', cxParentB, cut, 'parent');
 
@@ -504,16 +539,21 @@ function renderCrossover(cut) {
   renderCxRow('cxChildA', childA, cut, 'childA');
   renderCxRow('cxChildB', childB, cut, 'childB');
 
+  requestAnimationFrame(() => updateCutLine(cut));
+
+  const label = document.getElementById('cxCutLabel');
+  if (label) label.textContent = `corte: ${cut}`;
+
   const matchA = COURSES.filter((c, i) => profById(childA[i]).areas.includes(c.area)).length;
   const matchB = COURSES.filter((c, i) => profById(childB[i]).areas.includes(c.area)).length;
   const analysis = document.getElementById('cxAnalysis');
   analysis.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <div>✂️ Corte na posição <strong>${cut}</strong> de ${COURSES.length}</div>
+      <div>Corte na posição <strong>${cut}</strong> de ${COURSES.length}</div>
       <div>Filho A herda posições <strong>0–${cut - 1}</strong> do Pai A e <strong>${cut}–${COURSES.length - 1}</strong> do Pai B</div>
       <div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;">
-        <div style="color:var(--accent)">Filho A: ${matchA}/${COURSES.length} matches de área ✅</div>
-        <div style="color:var(--accent)">Filho B: ${matchB}/${COURSES.length} matches de área ✅</div>
+        <div style="color:var(--accent)">Filho A: ${matchA}/${COURSES.length} matches de área</div>
+        <div style="color:var(--accent)">Filho B: ${matchB}/${COURSES.length} matches de área</div>
       </div>
     </div>
   `;
@@ -824,6 +864,287 @@ function pauseDemo() {
   demoInterval = null;
   document.getElementById('demoPlayBtn').disabled  = demoGen >= DEMO_MAX_GEN;
   document.getElementById('demoPauseBtn').disabled = true;
+}
+
+/* ═══════════════════════════════════════════════════
+   SLIDE 10: MAPA — ANALOGIA DO ESPAÇO DE BUSCA
+═══════════════════════════════════════════════════ */
+const M_COLS = 26, M_ROWS = 12, M_CTR = 5.5;
+
+const MAP_PHASES = [
+  { tag: 'Ponto de partida', title: 'O Espaço de Busca',        desc: 'De A até B existe um número enorme de caminhos possíveis. Explorar todos levaria mais tempo que o universo tem.' },
+  { tag: 'Geração 0',        title: 'Exploração Inicial',        desc: 'O AG sorteia cromossomos aleatórios — caminhos espalhados por todo o espaço de busca. A névoa se levanta onde exploramos.' },
+  { tag: 'Fitness',          title: 'Avaliação dos Caminhos',    desc: 'Cada caminho recebe uma nota. Quanto mais direto ao destino, melhor o fitness. Verde é ótimo, vermelho é ruim.' },
+  { tag: 'Seleção',          title: 'O Funil',                   desc: 'Apenas os melhores caminhos sobrevivem. O espaço de busca se concentra na direção mais promissora — o restante desaparece.' },
+  { tag: 'Geração 1',        title: 'Crossover + Mutação',       desc: 'Combinamos os bons caminhos e adicionamos pequenas variações — exploramos um pouco mais dentro da boa direção.' },
+  { tag: 'Geração 2',        title: 'Convergindo',               desc: 'A avaliação e seleção se repetem. A cada ciclo o funil se estreita — as boas direções ficam cada vez mais evidentes.' },
+  { tag: 'Chegamos!',        title: 'Destino Alcançado',         desc: 'Sem explorar todo o espaço, o AG convergiu para o caminho ótimo através de ciclos de seleção e exploração localizada.' },
+];
+
+function initMapSlide() {
+  const canvas = document.getElementById('mapCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, cW, cH;
+  let mapPhaseIdx = 0;
+
+  // Precompute terrain noise (stable across renders)
+  const terrainNoise = Array.from({ length: M_ROWS }, (_, r) =>
+    Array.from({ length: M_COLS }, (_, c) =>
+      Math.sin(c * 0.7 + r * 1.3) * 0.5 + Math.cos(c * 1.1 - r * 0.8) * 0.3
+    )
+  );
+
+  // ── Path generation ──
+  function genPath(spread) {
+    const nWP = 4;
+    const wps = [{ t: 0, r: M_CTR }];
+    for (let i = 1; i <= nWP; i++) {
+      const t = i / (nWP + 1);
+      const bell = 4 * t * (1 - t);
+      const r = M_CTR + (Math.random() - 0.5) * 2 * spread * bell;
+      wps.push({ t, r: Math.max(0.5, Math.min(M_ROWS - 0.5, r)) });
+    }
+    wps.push({ t: 1, r: M_CTR });
+
+    const path = [];
+    for (let c = 0; c < M_COLS; c++) {
+      const t = c / (M_COLS - 1);
+      let i = 0;
+      while (i < wps.length - 2 && wps[i + 1].t < t) i++;
+      const { t: t0, r: r0 } = wps[i];
+      const { t: t1, r: r1 } = wps[i + 1];
+      const alpha = t0 === t1 ? 0 : (t - t0) / (t1 - t0);
+      path.push(r0 + alpha * (r1 - r0));
+    }
+    return path;
+  }
+
+  function genPathNear(base, spread) {
+    // Sample base at a few waypoints, add smooth offsets, then interpolate —
+    // same structure as genPath so the resulting path is smooth, not jagged.
+    const nWP = 4;
+    const wps = [];
+    for (let i = 0; i <= nWP; i++) {
+      const t   = i / nWP;
+      const col = Math.round(t * (M_COLS - 1));
+      const r   = base[col] + (Math.random() - 0.5) * 2 * spread;
+      wps.push({ t, r: Math.max(0.5, Math.min(M_ROWS - 0.5, r)) });
+    }
+    const path = [];
+    for (let c = 0; c < M_COLS; c++) {
+      const t = c / (M_COLS - 1);
+      let i = 0;
+      while (i < wps.length - 2 && wps[i + 1].t < t) i++;
+      const { t: t0, r: r0 } = wps[i];
+      const { t: t1, r: r1 } = wps[i + 1];
+      const alpha = t0 === t1 ? 0 : (t - t0) / (t1 - t0);
+      path.push(r0 + alpha * (r1 - r0));
+    }
+    return path;
+  }
+
+  function pathFitness(path) {
+    const avgDev = path.reduce((s, r) => s + Math.abs(r - M_CTR), 0) / path.length;
+    return 1 - avgDev / (M_ROWS / 2);
+  }
+
+  function fitnessColor(f) {
+    if (f > 0.72) return '#4ade80';
+    if (f > 0.55) return '#a3e635';
+    if (f > 0.38) return '#f59e0b';
+    return '#ef4444';
+  }
+
+  // ── Pre-generate all path sets ──
+  const pop1 = Array.from({ length: 22 }, () => genPath(M_ROWS * 0.43));
+  const fit1 = pop1.map(pathFitness);
+
+  const sel1 = [...pop1].map((p, i) => ({ p, f: fit1[i] }))
+    .sort((a, b) => b.f - a.f).slice(0, 6).map(x => x.p);
+
+  const pop2 = Array.from({ length: 18 }, () => {
+    const base = sel1[Math.floor(Math.random() * sel1.length)];
+    return genPathNear(base, M_ROWS * 0.17);
+  });
+  const fit2 = pop2.map(pathFitness);
+
+  const sel2 = [...pop2].map((p, i) => ({ p, f: fit2[i] }))
+    .sort((a, b) => b.f - a.f).slice(0, 5).map(x => x.p);
+
+  const pop3 = Array.from({ length: 12 }, () => {
+    const base = sel2[Math.floor(Math.random() * sel2.length)];
+    return genPathNear(base, M_ROWS * 0.07);
+  });
+  const bestPath = [...pop3].map(p => ({ p, f: pathFitness(p) }))
+    .sort((a, b) => b.f - a.f)[0].p;
+
+  // ── Fog computation ──
+  function makeFog(v) {
+    return Array.from({ length: M_ROWS }, () => new Array(M_COLS).fill(v));
+  }
+
+  function liftFog(fog, paths) {
+    const f = fog.map(r => [...r]);
+    paths.forEach(path => {
+      path.forEach((row, c) => {
+        const r = Math.floor(row);
+        const frac = row - r;
+        [[r, 1 - frac], [r + 1, frac]].forEach(([cr, w]) => {
+          if (cr >= 0 && cr < M_ROWS) f[cr][c] = Math.max(0, f[cr][c] - 0.85 * w);
+        });
+        [r - 1, r + 2].forEach(cr => {
+          if (cr >= 0 && cr < M_ROWS) f[cr][c] = Math.max(0, f[cr][c] - 0.3);
+        });
+      });
+    });
+    return f;
+  }
+
+  const fog0 = makeFog(1);
+  const fog1 = liftFog(fog0, pop1);
+  const fog4 = liftFog(fog1, pop2);
+  const fog6 = liftFog(fog4, pop3);
+
+  // ── Phase descriptors ──
+  const phaseData = [
+    { fog: fog0, visible: [],                                                               dimmed: [],                                                                       best: null },
+    { fog: fog1, visible: pop1.map((p, i) => ({ p, color: '#4ade80' })),                  dimmed: [],                                                                       best: null },
+    { fog: fog1, visible: pop1.map((p, i) => ({ p, color: fitnessColor(fit1[i]) })),      dimmed: [],                                                                       best: null },
+    { fog: fog1, visible: sel1.map(p => ({ p, color: '#4ade80' })),                        dimmed: pop1.filter(p => !sel1.includes(p)).map(p => ({ p, color: '#334155' })), best: null },
+    { fog: fog4, visible: pop2.map((p, i) => ({ p, color: fitnessColor(fit2[i]) })),      dimmed: sel1.map(p => ({ p, color: '#1e2d22' })),                                 best: null },
+    { fog: fog4, visible: sel2.map(p => ({ p, color: '#4ade80' })),                        dimmed: pop2.filter(p => !sel2.includes(p)).map(p => ({ p, color: '#334155' })), best: null },
+    { fog: fog6, visible: [],                                                               dimmed: sel2.map(p => ({ p, color: '#1a2e1a' })),                                best: bestPath },
+  ];
+
+  // ── Drawing ──
+  function drawTerrain() {
+    ctx.fillStyle = '#07100a';
+    ctx.fillRect(0, 0, W, H);
+    for (let r = 0; r < M_ROWS; r++) {
+      for (let c = 0; c < M_COLS; c++) {
+        const alpha = Math.max(0.02, 0.05 + terrainNoise[r][c] * 0.025);
+        ctx.fillStyle = `rgba(74,222,128,${alpha})`;
+        ctx.fillRect(c * cW + 0.5, r * cH + 0.5, cW - 1, cH - 1);
+      }
+    }
+  }
+
+  function drawFog(fog) {
+    for (let r = 0; r < M_ROWS; r++) {
+      for (let c = 0; c < M_COLS; c++) {
+        const op = fog[r][c];
+        if (op > 0.02) {
+          ctx.fillStyle = `rgba(7,16,10,${op * 0.94})`;
+          ctx.fillRect(c * cW, r * cH, cW, cH);
+        }
+      }
+    }
+  }
+
+  function drawPathLine(path, color, opacity, lineWidth) {
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth || 2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    path.forEach((row, c) => {
+      const x = (c + 0.5) * cW;
+      const y = row * cH;
+      if (c === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawMarker(col, label, isB) {
+    const x = (col === 0 ? 0.5 : M_COLS - 0.5) * cW;
+    const y = M_CTR * cH;
+    const color = isB ? '#facc15' : '#4ade80';
+
+    // Glow
+    const grd = ctx.createRadialGradient(x, y, 0, x, y, 32);
+    grd.addColorStop(0, isB ? 'rgba(250,204,21,0.35)' : 'rgba(74,222,128,0.3)');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(x - 34, y - 34, 68, 68);
+
+    // Circle
+    ctx.beginPath();
+    ctx.arc(x, y, 11, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // Letter
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 11px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x, y);
+  }
+
+  function drawBestPath(path) {
+    drawPathLine(path, 'rgba(250,204,21,0.15)', 1, 8);
+    drawPathLine(path, 'rgba(250,204,21,0.4)',  1, 4);
+    drawPathLine(path, '#facc15',               1, 2);
+  }
+
+  function draw() {
+    const pd = phaseData[mapPhaseIdx];
+    drawTerrain();
+    drawFog(pd.fog);
+    pd.dimmed.forEach(({ p, color }) => drawPathLine(p, color, 0.45));
+    pd.visible.forEach(({ p, color }) => drawPathLine(p, color, 0.85));
+    if (pd.best) drawBestPath(pd.best);
+    drawMarker(0,           'A', false);
+    drawMarker(M_COLS - 1,  'B', true);
+  }
+
+  // ── UI ──
+  function updateUI() {
+    const ph = MAP_PHASES[mapPhaseIdx];
+    document.getElementById('mapPhaseTag').textContent   = ph.tag;
+    document.getElementById('mapPhaseTitle').textContent = ph.title;
+    document.getElementById('mapPhaseDesc').textContent  = ph.desc;
+    [...document.getElementById('mapDots').children].forEach((d, i) =>
+      d.classList.toggle('active', i === mapPhaseIdx)
+    );
+    document.getElementById('mapPrevBtn').disabled = mapPhaseIdx === 0;
+    const isLast = mapPhaseIdx === MAP_PHASES.length - 1;
+    document.getElementById('mapNextBtn').disabled   = isLast;
+    document.getElementById('mapNextBtn').textContent = isLast ? 'Fim' : 'Próxima →';
+    draw();
+  }
+
+  // Build dots
+  const dotsEl = document.getElementById('mapDots');
+  MAP_PHASES.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'map-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => { mapPhaseIdx = i; updateUI(); });
+    dotsEl.appendChild(dot);
+  });
+
+  document.getElementById('mapPrevBtn').addEventListener('click', () => {
+    if (mapPhaseIdx > 0) { mapPhaseIdx--; updateUI(); }
+  });
+  document.getElementById('mapNextBtn').addEventListener('click', () => {
+    if (mapPhaseIdx < MAP_PHASES.length - 1) { mapPhaseIdx++; updateUI(); }
+  });
+
+  function resize() {
+    W  = canvas.width  = canvas.parentElement.offsetWidth;
+    H  = canvas.height = 260;
+    cW = W / M_COLS;
+    cH = H / M_ROWS;
+    draw();
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  updateUI();
 }
 
 /* ═══════════════════════════════════════════════════

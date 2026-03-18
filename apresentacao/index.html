@@ -27,7 +27,8 @@
       <button class="nav-label" data-index="7">Crossover</button>
       <button class="nav-label" data-index="8">Mutação</button>
       <button class="nav-label" data-index="9">Demo</button>
-      <button class="nav-label" data-index="10">Resumo</button>
+      <button class="nav-label" data-index="10">Mapa</button>
+      <button class="nav-label" data-index="11">Resumo</button>
     </div>
   </nav>
 
@@ -391,7 +392,8 @@
 
         <div class="crossover-layout">
           <div class="crossover-demo">
-            <div class="cx-parents-area">
+            <div class="cx-canvas" id="cxCanvas">
+
               <div class="cx-row">
                 <span class="cx-role parent-role">Pai A</span>
                 <div class="cx-genes-wrap" id="cxParentA"></div>
@@ -400,19 +402,13 @@
                 <span class="cx-role parent-role">Pai B</span>
                 <div class="cx-genes-wrap" id="cxParentB"></div>
               </div>
-            </div>
 
-            <div class="cx-slider-area">
-              <label class="cx-slider-label">Arraste o ponto de corte:</label>
-              <div class="cx-slider-row">
-                <span class="muted">1</span>
-                <input type="range" id="cxSlider" min="1" max="4" value="2" class="cx-slider" />
-                <span class="muted">4</span>
-                <span class="cx-cut-value" id="cxCutValue">posição 2</span>
+              <div class="cx-ruler-row">
+                <span class="cx-role-spacer"></span>
+                <div class="cx-ruler" id="cxRuler"></div>
+                <span class="cx-cut-label" id="cxCutLabel"></span>
               </div>
-            </div>
 
-            <div class="cx-children-area">
               <div class="cx-row">
                 <span class="cx-role child-role">Filho A</span>
                 <div class="cx-genes-wrap" id="cxChildA"></div>
@@ -421,6 +417,8 @@
                 <span class="cx-role child-role">Filho B</span>
                 <div class="cx-genes-wrap" id="cxChildB"></div>
               </div>
+
+              <div class="cx-cut-line" id="cxCutLine"></div>
             </div>
 
             <button class="btn-primary" id="newCxParentsBtn">↺ Novos pais aleatórios</button>
@@ -532,10 +530,34 @@
       </div>
     </section>
 
-    <!-- ━━━ SLIDE 10: RESUMO ━━━ -->
+    <!-- ━━━ SLIDE 10: MAPA — ANALOGIA ━━━ -->
     <section class="slide" id="slide-10">
+      <div class="slide-content map-content">
+        <div class="section-tag">10 — Analogia</div>
+        <h2 class="slide-title">Navegando pelo <span class="accent-text">Espaço de Soluções</span></h2>
+
+        <div class="map-layout">
+          <div class="map-canvas-wrap">
+            <canvas id="mapCanvas"></canvas>
+          </div>
+          <div class="map-phase-panel">
+            <div class="map-phase-tag" id="mapPhaseTag"></div>
+            <div class="map-phase-title" id="mapPhaseTitle"></div>
+            <div class="map-phase-desc" id="mapPhaseDesc"></div>
+            <div class="map-controls">
+              <button class="btn-secondary" id="mapPrevBtn" disabled>← Anterior</button>
+              <div class="map-dots" id="mapDots"></div>
+              <button class="btn-primary" id="mapNextBtn">Próxima →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 11: RESUMO ━━━ -->
+    <section class="slide" id="slide-11">
       <div class="slide-content">
-        <div class="section-tag">10 — Resumo</div>
+        <div class="section-tag">11 — Resumo</div>
         <h2 class="slide-title">Tudo em <span class="accent-text">um lugar só</span></h2>
 
         <div class="summary-layout">
