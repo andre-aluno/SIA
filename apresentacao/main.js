@@ -82,7 +82,7 @@ document.addEventListener('keydown', (e) => {
 
 function initSlide(i) {
   const inits = [
-    initHero, initConcept, initChromosome, initGene,
+    initHero, initConcept, initCycle, initChromosome, initGene,
     initPopulation, initFitness, initSelection, initCrossover,
     initMutation, initDemo, initMapSlide, () => {}
   ];
@@ -1146,6 +1146,240 @@ function initMapSlide() {
   window.addEventListener('resize', resize);
   resize();
   updateUI();
+}
+
+/* ═══════════════════════════════════════════════════
+   SLIDE 2: CICLO DO AG
+═══════════════════════════════════════════════════ */
+const UNIV_N = 380;
+const POP_N  = 100;
+
+// Phase definitions: canvas state, which nodes/steps/paths to highlight, gen label, description
+const CYC_PH = [
+  { c:'universe', n:'cyc-universe', s:null,           ps:[],                       gen:'—', desc:'O <strong>universo</strong> contém todas as soluções possíveis, bilhões de cromossomos. Impossível explorar todos.' },
+  { c:'sampling', n:'cyc-pop',      s:null,           ps:['cyc-arr-sample'],       gen:0,   desc:'Amostramos <strong>100 cromossomos aleatórios</strong> do universo para a população inicial.' },
+  { c:'fit0',     n:null,           s:'s-fitness',    ps:['cyc-arr-start','p-mf'], gen:1,   desc:'<strong>Fitness:</strong> avaliamos cada cromossomo. </br> Verde = boa alocação · Amarelo = médio · Vermelho = conflitos graves.' },
+  { c:'fit0',     n:null,           s:'s-selection',  ps:['p-fs'],                 gen:1,   desc:'<strong>Seleção:</strong> os cromossomos com maior fitness são escolhidos como pais da próxima geração.' },
+  { c:'fit0',     n:null,           s:'s-crossover',  ps:['p-sc'],                 gen:1,   desc:'<strong>Crossover:</strong> dois pais geram dois filhos, combinando genes de cada um, os bons padrões se propagam.' },
+  { c:'fit0',     n:null,           s:'s-mutation',   ps:['p-cm'],                 gen:1,   desc:'<strong>Mutação:</strong> alguns genes são trocados aleatoriamente, introduzindo diversidade e explorando regiões novas.' },
+  { c:'fit1',     n:null,           s:'s-fitness',    ps:['p-mf'],                 gen:2,   desc:'<strong>Fitness:</strong> nova geração, fitness médio mais alto. As soluções ruins foram descartadas, as boas dominam.' },
+  { c:'fit1',     n:null,           s:'s-selection',  ps:['p-fs'],                 gen:2,   desc:'<strong>Seleção:</strong> novos pais selecionados entre indivíduos ainda melhores.' },
+  { c:'fit1',     n:null,           s:'s-crossover',  ps:['p-sc'],                 gen:2,   desc:'<strong>Crossover:</strong> os melhores padrões continuam se combinando e se consolidando.' },
+  { c:'fit1',     n:null,           s:'s-mutation',   ps:['p-cm'],                 gen:2,   desc:'<strong>Mutação:</strong> variações controladas evitam que o algoritmo fique preso em mínimos locais.' },
+  { c:'fit2',     n:null,           s:'s-fitness',    ps:['p-mf'],                 gen:3,   desc:'<strong>Fitness:</strong> convergindo — a maioria das soluções já é excelente.' },
+  { c:'converged',n:'cyc-obj',      s:null,           ps:[],                       gen:3,   desc:'<strong>Solução boa o suficiente encontrada!</strong> O AG convergiu sem precisar testar todas as possibilidades do universo.' },
+];
+
+let cycTimer    = null;
+let cycPhaseIdx = 0;
+let cycDots     = [];
+let cycPopArr   = [];
+let cycPopSet   = new Set();
+let cycPopIdxMap = new Map();
+let cycAF       = null;
+
+function initCycle() {
+  const canvas = document.getElementById('cycleCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0;
+  let sampAnim  = 0;
+  let prevState = null;
+
+  // ── Build universe dots ──
+  function buildDots() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+    cycDots = [];
+    const cols = Math.ceil(Math.sqrt(UNIV_N * (W / Math.max(H, 1))));
+    const rows = Math.ceil(UNIV_N / cols);
+    const cw = W / cols, ch = H / rows;
+    let n = 0;
+    for (let r = 0; r < rows && n < UNIV_N; r++) {
+      for (let c = 0; c < cols && n < UNIV_N; c++) {
+        cycDots.push({
+          x:     (c + 0.12 + Math.random() * 0.76) * cw,
+          y:     (r + 0.12 + Math.random() * 0.76) * ch,
+          baseQ: Math.random(),
+          ph:    Math.random() * Math.PI * 2,
+          spd:   0.012 + Math.random() * 0.016,
+        });
+        n++;
+      }
+    }
+    const all = [...Array(UNIV_N).keys()].sort(() => Math.random() - 0.5);
+    cycPopArr    = all.slice(0, POP_N);
+    cycPopSet    = new Set(cycPopArr);
+    cycPopIdxMap = new Map(cycPopArr.map((di, i) => [di, i]));
+  }
+
+  // ── Fitness color: 0=red → 0.5=yellow → 1=green ──
+  function fitColor(q) {
+    if (q < 0.5) {
+      const t = q * 2;
+      return `rgb(${Math.round(239 + t * 12)},${Math.round(68 + t * 123)},${Math.round(68 - t * 32)})`;
+    } else {
+      const t = (q - 0.5) * 2;
+      return `rgb(${Math.round(251 - t * 177)},${Math.round(191 + t * 31)},${Math.round(36 + t * 92)})`;
+    }
+  }
+
+  function getBoost(state) {
+    return { universe:0, sampling:0, fit0:0, fit1:0.28, fit2:0.52, converged:0.72 }[state] || 0;
+  }
+
+  // ── Canvas render loop ──
+  function draw(ts) {
+    ctx.clearRect(0, 0, W, H);
+    const ph    = CYC_PH[cycPhaseIdx];
+    const state = ph.c;
+    const boost = getBoost(state);
+
+    if (state === 'sampling' && prevState !== 'sampling') sampAnim = 0;
+    if (state === 'sampling' && sampAnim < POP_N) sampAnim = Math.min(sampAnim + 3, POP_N);
+    if (state !== 'sampling') sampAnim = (state === 'universe') ? 0 : POP_N;
+    prevState = state;
+
+    const t = ts * 0.001;
+
+    cycDots.forEach((dot, i) => {
+      const isPop  = cycPopSet.has(i);
+      const popIdx = isPop ? (cycPopIdxMap.get(i) ?? -1) : -1;
+      const isLit  = isPop && popIdx < sampAnim;
+
+      if (state === 'universe') {
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(90,98,120,0.5)';
+        ctx.fill();
+      } else if (!isLit) {
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(90,98,120,0.18)';
+        ctx.fill();
+      } else {
+        const q     = Math.min(dot.baseQ + boost, 1.0);
+        const pulse = state === 'sampling' ? 1.0 : 0.78 + 0.22 * Math.sin(t * dot.spd * 10 + dot.ph);
+        const r     = 4 * pulse;
+
+        if (boost >= 0.52 && q > 0.78) {
+          const g = ctx.createRadialGradient(dot.x, dot.y, 0, dot.x, dot.y, r * 3.5);
+          g.addColorStop(0, 'rgba(74,222,128,0.2)');
+          g.addColorStop(1, 'rgba(74,222,128,0)');
+          ctx.beginPath();
+          ctx.arc(dot.x, dot.y, r * 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = g;
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = fitColor(q);
+        ctx.fill();
+      }
+    });
+
+    if (state === 'sampling' && sampAnim < POP_N) {
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(74,222,128,0.75)';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Selecionando ${sampAnim}/${POP_N}...`, 8, H - 10);
+    }
+
+    cycAF = requestAnimationFrame(draw);
+  }
+
+  // ── Update diagram based on phase ──
+  function setPhase(idx) {
+    cycPhaseIdx = Math.max(0, Math.min(idx, CYC_PH.length - 1));
+    const ph = CYC_PH[cycPhaseIdx];
+
+    // Stats
+    document.getElementById('statPop').textContent = (ph.c === 'universe') ? '—' : '100';
+    document.getElementById('statGen').textContent = ph.gen;
+    document.getElementById('statFit').textContent = { universe:'—', sampling:'—', fit0:'~42%', fit1:'~67%', fit2:'~85%', converged:'~96%' }[ph.c];
+
+    // Entry nodes
+    ['cyc-universe', 'cyc-pop'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('cyc-active', id === ph.n);
+    });
+
+    // Step nodes in ring
+    ['s-fitness', 's-selection', 's-crossover', 's-mutation'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('cyc-active', id === ph.s);
+    });
+
+    // SVG arc paths
+    ['p-fs', 'p-sc', 'p-cm', 'p-mf'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const on = ph.ps.includes(id);
+      el.classList.toggle('cyc-active', on);
+    });
+
+    // Sample arrow and start arrow (HTML elements)
+    const sampEl  = document.getElementById('cyc-arr-sample');
+    const startEl = document.getElementById('cyc-arr-start');
+    if (sampEl)  sampEl.classList.toggle('cyc-active', ph.ps.includes('cyc-arr-sample'));
+    if (startEl) startEl.classList.toggle('cyc-active', ph.ps.includes('cyc-arr-start'));
+
+    // Generation label
+    const genEl = document.getElementById('cycGenNum');
+    if (genEl) genEl.textContent = ph.gen;
+
+    // Objective row (appears on converged)
+    const isConverged = ph.c === 'converged';
+    const objRow = document.getElementById('cyc-obj');
+    const objArr = document.getElementById('cyc-arr-obj');
+    if (objRow) objRow.classList.toggle('visible', isConverged);
+    if (objArr) objArr.classList.toggle('visible', isConverged);
+
+    // Phase description
+    const descEl = document.getElementById('cycDesc');
+    if (descEl) descEl.innerHTML = ph.desc;
+  }
+
+  // ── Controls ──
+  function cycPlay() {
+    if (cycTimer) return;
+    document.getElementById('cycPlayBtn').disabled  = true;
+    document.getElementById('cycPauseBtn').disabled = false;
+    cycTimer = setInterval(() => {
+      if (cycPhaseIdx >= CYC_PH.length - 1) { cycPause(); return; }
+      setPhase(cycPhaseIdx + 1);
+    }, 1700);
+  }
+
+  function cycPause() {
+    clearInterval(cycTimer); cycTimer = null;
+    const pb = document.getElementById('cycPlayBtn');
+    if (pb) pb.disabled = cycPhaseIdx >= CYC_PH.length - 1;
+    const pauseB = document.getElementById('cycPauseBtn');
+    if (pauseB) pauseB.disabled = true;
+  }
+
+  function cycReset() {
+    cycPause();
+    buildDots();
+    sampAnim  = 0;
+    prevState = null;
+    setPhase(0);
+    const pb = document.getElementById('cycPlayBtn');
+    if (pb) pb.disabled = false;
+  }
+
+  document.getElementById('cycPlayBtn') .addEventListener('click', cycPlay);
+  document.getElementById('cycPauseBtn').addEventListener('click', cycPause);
+  document.getElementById('cycResetBtn').addEventListener('click', cycReset);
+  window.addEventListener('resize', buildDots);
+
+  buildDots();
+  setPhase(0);
+  lucide.createIcons();
+  if (cycAF) cancelAnimationFrame(cycAF);
+  requestAnimationFrame(draw);
 }
 
 /* ═══════════════════════════════════════════════════

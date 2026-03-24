@@ -19,16 +19,17 @@
     <div class="nav-labels">
       <button class="nav-label" data-index="0">Intro</button>
       <button class="nav-label" data-index="1">Conceito</button>
-      <button class="nav-label" data-index="2">Cromossomo</button>
-      <button class="nav-label" data-index="3">Gene</button>
-      <button class="nav-label" data-index="4">População</button>
-      <button class="nav-label" data-index="5">Fitness</button>
-      <button class="nav-label" data-index="6">Seleção</button>
-      <button class="nav-label" data-index="7">Crossover</button>
-      <button class="nav-label" data-index="8">Mutação</button>
-      <button class="nav-label" data-index="9">Demo</button>
-      <button class="nav-label" data-index="10">Mapa</button>
-      <button class="nav-label" data-index="11">Resumo</button>
+      <button class="nav-label" data-index="2">Ciclo</button>
+      <button class="nav-label" data-index="3">Cromossomo</button>
+      <button class="nav-label" data-index="4">Gene</button>
+      <button class="nav-label" data-index="5">População</button>
+      <button class="nav-label" data-index="6">Fitness</button>
+      <button class="nav-label" data-index="7">Seleção</button>
+      <button class="nav-label" data-index="8">Crossover</button>
+      <button class="nav-label" data-index="9">Mutação</button>
+      <button class="nav-label" data-index="10">Demo</button>
+      <button class="nav-label" data-index="11">Mapa</button>
+      <button class="nav-label" data-index="12">Resumo</button>
     </div>
   </nav>
 
@@ -121,10 +122,129 @@
       </div>
     </section>
 
-    <!-- ━━━ SLIDE 2: CROMOSSOMO ━━━ -->
+    <!-- ━━━ SLIDE 2: CICLO DO AG ━━━ -->
     <section class="slide" id="slide-2">
       <div class="slide-content">
-        <div class="section-tag">02 — Cromossomo</div>
+        <div class="section-tag">02 — Ciclo</div>
+        <h2 class="slide-title">O Ciclo do AG: <span class="accent-text">do universo ao bom o suficiente</span></h2>
+
+        <div class="cycle-layout">
+
+          <!-- ── LEFT: Universe canvas ── -->
+          <div class="cycle-left">
+            <div class="cycle-canvas-label">Universo de soluções · cada ponto = 1 cromossomo</div>
+            <div class="cycle-canvas-wrap">
+              <canvas id="cycleCanvas"></canvas>
+            </div>
+            <div class="cycle-stats">
+              <div class="cycle-stat-card">
+                <span class="cycle-stat-label">Universo</span>
+                <span class="cycle-stat-value">8<sup>20</sup></span>
+              </div>
+              <div class="cycle-stat-card">
+                <span class="cycle-stat-label">População</span>
+                <span class="cycle-stat-value accent-text" id="statPop">—</span>
+              </div>
+              <div class="cycle-stat-card">
+                <span class="cycle-stat-label">Geração</span>
+                <span class="cycle-stat-value" id="statGen">—</span>
+              </div>
+              <div class="cycle-stat-card">
+                <span class="cycle-stat-label">Fitness médio</span>
+                <span class="cycle-stat-value" id="statFit">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── RIGHT: Cycle diagram ── -->
+          <div class="cycle-right">
+
+            <!-- Entry: Universe → Population -->
+            <div class="cyc-entry-row">
+              <div class="cyc-entry-node" id="cyc-universe">
+                <i data-lucide="globe" class="cyc-node-icon"></i>
+                <span class="cyc-node-name">Universo</span>
+                <span class="cyc-node-sub">todas as soluções</span>
+              </div>
+              <div class="cyc-entry-arrow" id="cyc-arr-sample">
+                <div class="cyc-arr-line"></div>
+                <div class="cyc-arr-lbl">100 aleatórios</div>
+              </div>
+              <div class="cyc-entry-node" id="cyc-pop">
+                <i data-lucide="users" class="cyc-node-icon"></i>
+                <span class="cyc-node-name">População</span>
+                <span class="cyc-node-sub">amostra inicial</span>
+              </div>
+            </div>
+
+            <!-- Down arrow: population → ring -->
+            <div class="cyc-v-arr" id="cyc-arr-start">▼</div>
+
+            <!-- Cycle ring -->
+            <div class="cyc-ring-wrap">
+              <svg class="cyc-svg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+                <!-- Fitness → Seleção -->
+                <path id="p-fs" class="cyc-arc" d="M 120 30 A 90 90 0 0 1 210 120" />
+                <!-- Seleção → Crossover -->
+                <path id="p-sc" class="cyc-arc" d="M 210 120 A 90 90 0 0 1 120 210" />
+                <!-- Crossover → Mutação -->
+                <path id="p-cm" class="cyc-arc" d="M 120 210 A 90 90 0 0 1 30 120" />
+                <!-- Mutação → Fitness -->
+                <path id="p-mf" class="cyc-arc" d="M 30 120 A 90 90 0 0 1 120 30" />
+              </svg>
+
+              <!-- Step nodes at 12 / 3 / 6 / 9 o'clock -->
+              <div class="cyc-step cyc-top" id="s-fitness">
+                <span class="cyc-step-name">Fitness</span>
+              </div>
+              <div class="cyc-step cyc-right" id="s-selection">
+                <span class="cyc-step-name">Seleção</span>
+              </div>
+              <div class="cyc-step cyc-bottom" id="s-crossover">
+                <span class="cyc-step-name">Crossover</span>
+              </div>
+              <div class="cyc-step cyc-left" id="s-mutation">
+                <span class="cyc-step-name">Mutação</span>
+              </div>
+
+              <!-- Center: generation counter -->
+              <div class="cyc-center">
+                <div class="cyc-gen-num" id="cycGenNum">—</div>
+                <div class="cyc-gen-lbl">geração</div>
+              </div>
+            </div>
+
+            <!-- Down arrow to objective (hidden until converged) -->
+            <div class="cyc-v-arr" id="cyc-arr-obj">▼</div>
+
+            <!-- Objective row (hidden until converged) -->
+            <div class="cyc-obj-row" id="cyc-obj">
+              <i data-lucide="target" class="cyc-obj-icon"></i>
+              <span class="cyc-obj-text">Solução boa o suficiente encontrada!</span>
+            </div>
+
+            <!-- Phase description -->
+            <div class="cyc-desc" id="cycDesc">
+              <span class="muted">Pressione ▶ para iniciar o ciclo evolutivo</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="cycle-controls">
+          <button class="btn-primary"   id="cycPlayBtn">▶ Iniciar</button>
+          <button class="btn-secondary" id="cycPauseBtn" disabled>⏸ Pausar</button>
+          <button class="btn-secondary" id="cycResetBtn">↺ Resetar</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ━━━ SLIDE 3: CROMOSSOMO ━━━ -->
+    <section class="slide" id="slide-3">
+      <div class="slide-content">
+        <div class="section-tag">03 — Cromossomo</div>
         <h2 class="slide-title">O Cromossomo: <span class="accent-text">8 vagas para preencher</span></h2>
         <p class="slide-lead">Temos 8 disciplinas que precisam de um professor. Pense em 8 caixinhas vazias. Quando todas estão preenchidas, temos uma <strong>solução completa</strong> — isso é o cromossomo.</p>
 
@@ -154,9 +274,9 @@
     </section>
 
     <!-- ━━━ SLIDE 3: GENE ━━━ -->
-    <section class="slide" id="slide-3">
+    <section class="slide" id="slide-4">
       <div class="slide-content">
-        <div class="section-tag">03 — Gene</div>
+        <div class="section-tag">04 — Gene</div>
         <h2 class="slide-title">O Gene: <span class="accent-text">uma única caixinha</span></h2>
 
         <div class="two-col">
@@ -197,9 +317,9 @@
     </section>
 
     <!-- ━━━ SLIDE 4: POPULAÇÃO ━━━ -->
-    <section class="slide" id="slide-4">
+    <section class="slide" id="slide-5">
       <div class="slide-content">
-        <div class="section-tag">04 — População</div>
+        <div class="section-tag">05 — População</div>
         <h2 class="slide-title">A População: <span class="accent-text">100 apostas simultâneas</span></h2>
         <p class="slide-lead">Em vez de testar uma solução por vez, o AG mantém uma <strong>população inteira</strong> de soluções candidatas. Elas competem, combinam e evoluem juntas a cada geração.</p>
 
@@ -225,9 +345,9 @@
     </section>
 
     <!-- ━━━ SLIDE 5: FITNESS ━━━ -->
-    <section class="slide" id="slide-5">
+    <section class="slide" id="slide-6">
       <div class="slide-content">
-        <div class="section-tag">05 — Fitness</div>
+        <div class="section-tag">06 — Fitness</div>
         <h2 class="slide-title">Fitness: <span class="accent-text">como avaliamos</span> uma solução</h2>
         <p class="slide-lead">Cada cromossomo recebe uma nota. Essa nota — o <strong>fitness</strong> — diz o quanto aquela alocação é boa. O AG usa essa nota para decidir quais soluções merecem continuar e quais devem ser descartadas. Clique nos critérios para ver como cada um afeta a pontuação.</p>
 
@@ -334,9 +454,9 @@
     </section>
 
     <!-- ━━━ SLIDE 6: SELEÇÃO ━━━ -->
-    <section class="slide" id="slide-6">
+    <section class="slide" id="slide-7">
       <div class="slide-content">
-        <div class="section-tag">06 — Seleção</div>
+        <div class="section-tag">07 — Seleção</div>
         <h2 class="slide-title">Seleção: <span class="accent-text">quem merece</span> se reproduzir?</h2>
         <p class="slide-lead">Imagine o Coliseu Romano. O imperador sorteia <strong>3 gladiadores</strong> da fila de espera, eles combatem, e o mais forte vence. Mas há uma diferença crucial em relação à história: <strong>nenhum gladiador morre</strong> — todos os 3 voltam para a fila.</p>
 
@@ -384,9 +504,9 @@
     </section>
 
     <!-- ━━━ SLIDE 7: CROSSOVER ━━━ -->
-    <section class="slide" id="slide-7">
+    <section class="slide" id="slide-8">
       <div class="slide-content">
-        <div class="section-tag">07 — Crossover</div>
+        <div class="section-tag">08 — Crossover</div>
         <h2 class="slide-title">Crossover: <span class="accent-text">combinando</span> o melhor dos pais</h2>
         <p class="slide-lead">O crossover de <strong>ponto único</strong> escolhe um corte aleatório e troca os segmentos entre dois pais, gerando dois filhos com características herdadas de ambos.</p>
 
@@ -439,9 +559,9 @@
     </section>
 
     <!-- ━━━ SLIDE 8: MUTAÇÃO ━━━ -->
-    <section class="slide" id="slide-8">
+    <section class="slide" id="slide-9">
       <div class="slide-content">
-        <div class="section-tag">08 — Mutação</div>
+        <div class="section-tag">09 — Mutação</div>
         <h2 class="slide-title">Mutação: <span class="accent-text">introduzindo novidade</span></h2>
         <p class="slide-lead">Sem mutação, o algoritmo só pode combinar o que já existe. A mutação <strong>explora territórios novos</strong> — como uma característica que surgiu do nada e por acaso se prova vantajosa.</p>
 
@@ -488,9 +608,9 @@
     </section>
 
     <!-- ━━━ SLIDE 9: DEMONSTRAÇÃO ━━━ -->
-    <section class="slide" id="slide-9">
+    <section class="slide" id="slide-10">
       <div class="slide-content demo-content">
-        <div class="section-tag">09 — Demonstração</div>
+        <div class="section-tag">10 — Demonstração</div>
         <h2 class="slide-title">O AG <span class="accent-text">evoluindo</span> ao vivo</h2>
 
         <div class="demo-layout">
@@ -531,9 +651,9 @@
     </section>
 
     <!-- ━━━ SLIDE 10: MAPA — ANALOGIA ━━━ -->
-    <section class="slide" id="slide-10">
+    <section class="slide" id="slide-11">
       <div class="slide-content map-content">
-        <div class="section-tag">10 — Analogia</div>
+        <div class="section-tag">11 — Analogia</div>
         <h2 class="slide-title">Navegando pelo <span class="accent-text">Espaço de Soluções</span></h2>
 
         <div class="map-layout">
@@ -555,9 +675,9 @@
     </section>
 
     <!-- ━━━ SLIDE 11: RESUMO ━━━ -->
-    <section class="slide" id="slide-11">
+    <section class="slide" id="slide-12">
       <div class="slide-content">
-        <div class="section-tag">11 — Resumo</div>
+        <div class="section-tag">12 — Resumo</div>
         <h2 class="slide-title">Tudo em <span class="accent-text">um lugar só</span></h2>
 
         <div class="summary-layout">
@@ -618,7 +738,7 @@
   <!-- ── KEY HINT (bottom right) ── -->
   <div class="key-hint" id="keyHint">
     <span class="key-hint-keys">↑ ↓ navegar</span>
-    <span class="key-hint-counter" id="keyHintCounter">1 / 11</span>
+    <span class="key-hint-counter" id="keyHintCounter">1 / 13</span>
   </div>
 
   <script src="main.js"></script>

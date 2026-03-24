@@ -1523,3 +1523,293 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   background: var(--accent);
   transform: scale(1.4);
 }
+
+/* ═══════════════════════════════════════════════════
+   SLIDE 2: CICLO DO AG
+═══════════════════════════════════════════════════ */
+.cycle-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+/* ── Left panel: canvas ── */
+.cycle-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cycle-canvas-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cycle-canvas-wrap {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+  height: 265px;
+}
+
+#cycleCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cycle-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.cycle-stat-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.cycle-stat-label {
+  font-size: 0.62rem;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cycle-stat-value {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: block;
+}
+
+/* ── Right panel: diagram ── */
+.cycle-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Entry row: Universe → Population */
+.cyc-entry-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.cyc-entry-node {
+  flex: 1;
+  max-width: 140px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  text-align: center;
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+
+.cyc-entry-node.cyc-active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 18px rgba(74,222,128,0.2);
+}
+
+.cyc-node-icon  { width: 20px; height: 20px; display: block; margin: 0 auto 4px; color: var(--muted); stroke-width: 1.75; transition: color 0.3s; }
+.cyc-entry-node.cyc-active .cyc-node-icon { color: var(--accent); }
+.cyc-node-name  { font-size: 0.74rem; font-weight: 700; display: block; }
+.cyc-node-sub   { font-size: 0.61rem; color: var(--muted); display: block; }
+
+/* Horizontal arrow between entry nodes */
+.cyc-entry-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.cyc-arr-line {
+  width: 44px;
+  height: 2px;
+  background: rgba(255,255,255,0.13);
+  border-radius: 1px;
+  position: relative;
+  transition: background 0.35s;
+}
+
+.cyc-entry-arrow.cyc-active .cyc-arr-line { background: var(--accent); }
+
+.cyc-arr-lbl {
+  font-size: 0.58rem;
+  color: var(--muted);
+  text-align: center;
+  transition: color 0.35s;
+}
+
+.cyc-entry-arrow.cyc-active .cyc-arr-lbl { color: var(--accent); }
+
+/* Vertical arrow connectors */
+.cyc-v-arr {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.18);
+  line-height: 1;
+  transition: color 0.35s, opacity 0.45s;
+}
+
+.cyc-v-arr.cyc-active { color: var(--accent); }
+
+#cyc-arr-obj {
+  opacity: 0;
+  transition: opacity 0.45s;
+}
+
+#cyc-arr-obj.visible { opacity: 1; }
+
+/* ── Cycle ring ── */
+.cyc-ring-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  flex-shrink: 0;
+}
+
+.cyc-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+
+.cyc-arc {
+  fill: none;
+  stroke: rgba(255,255,255,0.13);
+  stroke-width: 1.5;
+  /* quarter-circle ≈ 141px; visible = 141 - 55 (top/bottom wide pill) - 22 (left/right tall pill) = 64px */
+  stroke-dasharray: 64 1000;
+  transition: stroke 0.35s, stroke-width 0.35s;
+}
+
+#p-fs, #p-cm { stroke-dashoffset: -50; }
+#p-sc, #p-mf { stroke-dashoffset: -25; }
+
+.cyc-arc.cyc-active {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+/* Step nodes (positioned absolute at 12/3/6/9 o'clock) */
+.cyc-step {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.cyc-step-name {
+  background: var(--surface2);
+  border: 1.5px solid var(--border2);
+  border-radius: 50px;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.cyc-step.cyc-active .cyc-step-name {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+  box-shadow: 0 0 16px rgba(74,222,128,0.3);
+}
+
+/* Positions: node-center aligns with circle boundary (r=90 of 240 viewBox mapped to 220px) */
+.cyc-top    { top: 12.5%;  left: 50%;    transform: translate(-50%, -50%); }
+.cyc-right  { top: 50%;    left: 87.5%;  transform: translate(-50%, -50%); }
+.cyc-bottom { top: 87.5%;  left: 50%;    transform: translate(-50%, -50%); }
+.cyc-left   { top: 50%;    left: 12.5%;  transform: translate(-50%, -50%); }
+
+/* Center generation counter */
+.cyc-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.cyc-gen-num {
+  font-family: var(--font-mono);
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.cyc-gen-lbl {
+  font-size: 0.58rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Objective row (hidden until converged) */
+.cyc-obj-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px;
+  background: var(--warning-dim);
+  border: 1.5px solid rgba(251,191,36,0.4);
+  border-radius: 10px;
+  padding: 10px 16px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.45s, transform 0.45s;
+  pointer-events: none;
+}
+
+.cyc-obj-row.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.cyc-obj-icon  { width: 22px; height: 22px; flex-shrink: 0; color: var(--warning); stroke-width: 1.75; }
+.cyc-obj-text  { font-size: 0.78rem; font-weight: 700; color: var(--warning); line-height: 1.4; }
+
+/* Phase description box */
+.cyc-desc {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 0.80rem;
+  line-height: 1.55;
+  text-align: center;
+  width: 100%;
+  min-height: 52px;
+}
+
+/* Controls */
+.cycle-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+}
