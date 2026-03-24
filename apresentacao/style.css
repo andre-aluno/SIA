@@ -1203,9 +1203,10 @@ kbd {
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
-.mut-genes-row { display: flex; gap: 5px; flex-wrap: wrap; }
+.mut-genes-row { display: flex; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
 .mut-gene {
-  width: 68px;
+  flex: 1 1 0;
+  min-width: 0;
   height: 48px;
   border-radius: 8px;
   display: flex;
@@ -1282,7 +1283,7 @@ kbd {
   font-size: 14px;
   color: var(--muted);
 }
-.mut-analogy-icon { font-size: 28px; flex-shrink: 0; }
+.mut-analogy-icon { width: 28px; height: 28px; flex-shrink: 0; color: var(--accent); }
 
 /* ═══════════════════════════════════════════════════
    SLIDE 9: DEMO

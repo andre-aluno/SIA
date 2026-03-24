@@ -596,6 +596,7 @@ function initMutation() {
   mutResult   = [...mutOriginal];
   renderMutBefore();
   renderMutAfter([], false);
+  lucide.createIcons();
 
   document.getElementById('mutSlider').addEventListener('input', function(e) {
     e.stopPropagation();
